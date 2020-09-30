@@ -1,0 +1,513 @@
+label {
+    display: block;
+}
+
+textarea {
+    width: 70%;
+    height: 50%;
+    display: block;
+}
+
+textarea#txtTeseSearch {
+    width: 80%;
+    height: 20%;
+    display: inline-block;
+}
+
+select#selTeses {
+    display: inline-block;
+}
+
+textarea#txtObs {
+    width: 99%;
+    display: block;
+}
+
+.btn{
+    margin-top: 2px !important;
+    padding-left: 10px;
+    float: left;
+    margin-left: 100px;
+}
+
+.row {
+    margin-top: 2%;
+    display: block;
+    width: 100%;
+    text-align: left;
+}
+
+.row-externo {
+    display: block;
+    width: 100%;
+    text-align: left;
+}
+
+.row-externo>div.auxiliar {
+    position: relative;
+    top: -5px;
+}
+
+.right-row {
+    width: 100%;
+    margin-top: 2%;
+    text-align: right;
+    display: block;
+}
+
+.mb {
+    margin-bottom: 2%;
+}
+
+.mt {
+    margin-top: 2%;
+}
+
+.mb-1 {
+    margin-bottom: 1%
+}
+
+.mt-1 {
+    margin-top: 1%;
+}
+
+.mr {
+    margin-right: 5px;
+}
+
+.ml {
+    margin-left: 5px;
+}
+
+.f-left {
+    float: left;
+}
+
+.col-half,
+.col-half-externo {
+    width: 50%;
+    margin: 0;
+    float: left;
+}
+
+.col-half-interna {
+    width: 42%;
+    margin: 0 0 -3% 0 !important;
+    display: inline-block;
+}
+
+.fluid {
+    width: 46% !important;
+}
+
+.col-half div {
+    margin-bottom: 3%;
+}
+
+.col-half select,
+.col-half input {
+    width: 80%;
+}
+
+.col-half label,
+.col-half div label {
+    width: 80%;
+    display: block;
+}
+
+.col-half>fieldset {
+    padding: 15px;
+}
+
+.col-half>fieldset>input {
+    width: 50%;
+}
+
+.col-interna {
+    width: 44%;
+    margin: 0;
+    display: inline-block;
+    margin-right: 4%;
+}
+
+.coluna {
+    width: 20%;
+    display: inline-block;
+}
+
+.coluna-int {
+    width: 33%;
+    display: inline-block;
+}
+
+@media screen and (max-width: 1024px) {
+    .coluna-int {
+        width: 58%;
+        display: inline-block;
+    }
+}
+
+@media screen and (max-width: 2560px) {
+    .coluna-int {
+        width: 23%;
+        display: inline-block;
+    }
+}
+
+@media screen and (max-width: 1920px) {
+    .coluna-int {
+        width: 30%;
+        display: inline-block;
+    }
+}
+
+@media screen and (max-width: 1680px) {
+    .coluna-int {
+        width: 37%;
+        display: inline-block;
+    }
+}
+
+@media screen and (max-width: 1440px) {
+    .coluna-int {
+        width: 43%;
+        display: inline-block;
+    }
+}
+
+.coluna-externo-md {
+    width: 30%;
+    display: inline-block;
+}
+
+.coluna-externo {
+    width: 20%;
+    display: inline-block;
+}
+
+.coluna-externo>label {
+    display: inline !important;
+}
+
+.coluna-lg {
+    width: 75%;
+    display: inline-block;
+}
+
+.coluna-lg-externo {
+    width: 60%;
+    display: inline-block;
+}
+
+.coluna-lg-externo>input[type="text"],
+.coluna-lg-externo>input[type="email"] {
+    width: 93%;
+}
+
+.coluna .coluna-lg textarea {
+    width: 100% !important;
+}
+
+.coluna>.openCal {
+    position: relative;
+    top: 3px;
+}
+
+input[type=text],
+select {
+    width: 85%;
+}
+
+.coluna p {
+    display: inline;
+    position: relative;
+    top: -2px;
+}
+
+#txtNumeroParcela,
+#txtQuantidadeParcela {
+    width: 5%;
+}
+
+#barraParcela {
+    font-size: 2em;
+}
+
+#divObservacao {
+    margin-top: 1%;
+}
+
+.clear {
+    clear: both;
+}
+
+div.infraAreaDados {
+    overflow-y: hidden;
+}
+
+div.infraBarraLocalizacao {
+    margin-bottom: -30px !important;
+}
+
+.rolagem {
+    overflow-x: scroll;
+}
+
+.icons-vertical {
+    display: inline-block;
+    position: relative;
+    top: -15px;
+}
+
+.icons-vertical>.icon {
+    display: block;
+}
+
+.tituloHeader {
+    font-size: 2em;
+    font-weight: bold;
+    color: #000;
+}
+
+.forFloatingButton {
+    display: inline;
+    margin-right: 5%;
+}
+
+button#btNovoRecurso {
+    position: relative;
+    top: -1px;
+}
+
+.EstadualSelect {
+    display: none;
+}
+
+.inativar,
+.ocultar {
+    display: none;
+}
+
+div.childs {
+    margin-left: 15px;
+}
+
+.bt {
+    width: 8%;
+    margin-right: 20px;
+}
+
+.coluna-captcha {
+    width: 20%;
+    margin: 0;
+    display: inline-block;
+}
+
+.coluna-captcha label img {
+    position: relative;
+    bottom: -20px;
+    width: 150px;
+    height: 50px;
+}
+
+.coluna-captcha input {
+    width: 70%;
+}
+
+.coluna-captcha label {
+    width: 70%;
+    display: block;
+}
+
+#lblCodigo {
+    width: 70%;
+    display: block;
+    margin-top: 5%;
+}
+
+.mb-5 {
+    margin-bottom: 5%;
+}
+
+#txtCaptcha {
+    height: 50px !important;
+}
+
+p.separador {
+    border-top: 1px solid #d9dadc;
+    display: block;
+    line-height: 1px;
+    margin:  25px 0 25px 0 ;;
+    text-align: center;
+    font-size: 13px;
+    color: #666;
+}
+
+p.separador strong{
+    color: #666;
+    padding: 0px 10px;
+    background-color: #fff;
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+
+a.btGov {
+    text-decoration: none;
+    border: 1px solid #bbb;
+    text-align: center;
+    margin-bottom: 0;
+    margin-top: 5px;
+    padding-top: 3px;
+}
+
+#txtComplementarBtGov {
+    font-weight: 200;
+    position: relative;
+    top: -10px;
+    font-size: 1.1em;
+    font-family: Arial;
+    color: #666;
+}
+
+.textoGovBr {
+    font-weight: 200 !important;
+    position: relative !important;
+    top: -10px;
+    font-size: 2.0em !important;
+    color: #888 !important;
+}
+
+.formatTxt {
+    font-weight: 200 !important;
+    position: relative !important;
+    top: -10px !important;
+    font-size: 22px !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    color: #888 !important;
+    margin-left: 10% !important;
+    margin-right: 5%;
+}
+
+li {
+    list-style-type: circle !important;
+}
+
+#frmAceite {
+    font-family: sans-serif !important;
+}
+
+.center {
+    text-align: center !important;
+}
+
+.mt-100 {
+    margin-top: -100px !important;
+}
+
+.mt-50 {
+    margin-top: -50px !important;
+}
+
+.mt-3 {
+    margin-top: 3% !important;
+}
+
+.mt-5 {
+    margin-top: 5% !important;
+}
+
+.mb-2 {
+    margin-bottom: 2% !important;
+}
+
+.mb-4 {
+    margin-bottom: 4% !important;
+}
+
+.mb-8 {
+    margin-bottom: 8% !important;
+}
+
+.btnGov {
+    display: block !important;
+    /* width: 100px;  */
+    display: inline-block !important;
+    padding: 6px 12px !important;
+    font-size: 20px !important;
+    font-weight: 400 !important;
+    line-height: 1.42857143 !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+    -ms-touch-action: manipulation !important;
+    touch-action: manipulation !important;
+    cursor: pointer !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    background-image: none !important;
+    border: 1px solid transparent !important;
+    height: 45px !important;
+    color: #666 !important
+}
+
+.btnAutorizaGov {
+    color: #fff !important;
+    background-color: #337ab7 !important;
+    border-color: #2e6da4 !important;
+    margin-left: 3% !important;
+}
+
+body {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.blue {
+    padding: 0 !important;
+    margin: 0 !important;
+    background-color: #1494c7 !important;
+    width: 100% !important;
+    height: 70px !important;
+}
+
+.imgGov {
+    width: 150px !important;
+    height: 70px !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    margin-left: 30px !important;
+}
+
+#acessibilidade {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    float: right;
+    margin-top: 7%;
+}
+
+.pop-up {
+    position: absolute;
+    width: 140px;
+    height: 50px;
+    margin-top: 7%;
+}
+
+#divAutenticacao {
+    height:300px;
+}
+     
+#divSistema {
+    height:300px;
+    position: relative;
+}
+    
+#divSistema img{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+    
