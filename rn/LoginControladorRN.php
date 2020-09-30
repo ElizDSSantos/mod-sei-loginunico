@@ -132,11 +132,12 @@ final class LoginControladorRN extends InfraRN
 
             $access_token = $json_output_tokens['access_token'];
             $id_token = $json_output_tokens['id_token'];
+            $cpf = $json_output_payload_id_token['sub'];
 
             try {
                 $json_output_payload_id_token = $this->processToClaims($id_token, $json_output_jwk);
                 SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_TOKEN', $json_output_payload_id_token);
-                $selos = $this->obterSelos($id_token);
+                $selos = $this->obterSelos($id_token, $cpf);
                 $dadosReceita = $this->obterDadosReceita($id_token);
                 SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_TOKEN_ENDERECO', $dadosReceita);
                 $ecnpj = $this->obterSeloCNPJ($json_output_payload_id_token, $json_output_tokens);
@@ -255,7 +256,8 @@ final class LoginControladorRN extends InfraRN
     public function checkUserHasSelo($selos)
     {
         foreach ($selos as $selosUser) {
-            if (in_array($selosUser['nivel'], $this->selo_confianca)) {
+            //if (in_array($selosUser['nivel'], $this->selo_confianca)) {
+            if (in_array($selosUser['confiabilidade']['id'], $this->selo_confianca)) {
                 return true;
             }
         }
@@ -350,9 +352,10 @@ final class LoginControladorRN extends InfraRN
       * @param array $access_token
       * @return void
       */
-    public function obterSelos($access_token)
+    public function obterSelos($access_token, $cpf)
     {
-        $url = $this->url_servico . "/api/info/usuario/selo";
+        // $url = $this->url_servico . "/api/info/usuario/selo";
+        $url = $this->url_servico . "confiabilidades/v2/contas/$cpf/confiabilidades";
         $ch_confiabilidade = curl_init();
         curl_setopt($ch_confiabilidade, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch_confiabilidade, CURLOPT_URL, $url);
