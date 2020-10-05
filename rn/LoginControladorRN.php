@@ -122,7 +122,7 @@ final class LoginControladorRN extends InfraRN
      * @param array $dados
      * @return void
      */
-    public function autenticar($dados)
+    protected function autenticarControlado($dados)
     {
         $CODE = $dados["code"];
 
@@ -132,11 +132,11 @@ final class LoginControladorRN extends InfraRN
 
             $access_token = $json_output_tokens['access_token'];
             $id_token = $json_output_tokens['id_token'];
-            $cpf = $json_output_payload_id_token['sub'];
-
+            
             try {
                 $json_output_payload_id_token = $this->processToClaims($id_token, $json_output_jwk);
                 SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_TOKEN', $json_output_payload_id_token);
+                $cpf = $json_output_payload_id_token['sub'];
                 $selos = $this->obterSelos($id_token, $cpf);
                 $dadosReceita = $this->obterDadosReceita($id_token);
                 SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_TOKEN_ENDERECO', $dadosReceita);
@@ -163,7 +163,7 @@ final class LoginControladorRN extends InfraRN
                 }
                 
             } catch (Exception $e) {
-                $detalhamentoErro = $e;
+                throw $e;
             }
         } else {
             $getDadosUser = $this->pesquisarUsuario(SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN'));
@@ -171,7 +171,7 @@ final class LoginControladorRN extends InfraRN
             $atualizarUser = $getDadosUser['update'];
         }
 
-        $this->login($userSei, $atualizarUser, $associar, $duplicidade);      
+        $this->login($userSei, $atualizarUser, $associar, $duplicidade);
     }
 
      /**
@@ -181,10 +181,10 @@ final class LoginControladorRN extends InfraRN
       * @param string $status
       * @return void
       */
-    private function getDestination($atualizar, $status)
+    private function getDestination($atualizar, $sinAtivo, $staTipo)
     {
         if (!$atualizar) {
-            if ($status == 'N') {
+            if ($sinAtivo == 'N' || $staTipo != UsuarioRN::$TU_EXTERNO) {
                 return array('action' => '../../controlador_externo.php?acao=usuario_externo_sair', 'erro' => true);
             }
             return array('action' => '../../controlador_externo.php?acao=usuario_externo_controle_acessos', 'erro' => false);
@@ -222,9 +222,9 @@ final class LoginControladorRN extends InfraRN
 
             $objUsuarioDTOAuditoria = clone($user);
 
-            AuditoriaSEI::getInstance()->auditar('usuario_externo_logar', __METHOD__, $objUsuarioDTOAuditoria);
+            //AuditoriaSEI::getInstance()->auditar('usuario_externo_logar', __METHOD__, $objUsuarioDTOAuditoria);
 
-            $dest = $this->getDestination($atualizar, $user->getStrSinAtivo());
+            $dest = $this->getDestination($atualizar, $user->getStrSinAtivo(), $user->getStrStaTipo());
             $action = $dest['action'];
             $erro = $dest['erro'];
             
@@ -355,7 +355,7 @@ final class LoginControladorRN extends InfraRN
     public function obterSelos($access_token, $cpf)
     {
         // $url = $this->url_servico . "/api/info/usuario/selo";
-        $url = $this->url_servico . "confiabilidades/v2/contas/$cpf/confiabilidades";
+        $url = $this->url_servico . "/confiabilidades/v2/contas/$cpf/confiabilidades";
         $ch_confiabilidade = curl_init();
         curl_setopt($ch_confiabilidade, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch_confiabilidade, CURLOPT_URL, $url);
@@ -365,7 +365,13 @@ final class LoginControladorRN extends InfraRN
             'Authorization: Bearer '. $access_token
         );
         curl_setopt($ch_confiabilidade, CURLOPT_HTTPHEADER, $headers);
-        $json_output_confiabilidade = json_decode(curl_exec($ch_confiabilidade), true);
+
+        $retorno = curl_exec($ch_confiabilidade);
+        if($retorno === false){
+            throw new InfraException(curl_error($ch_confiabilidade));
+        }
+
+        $json_output_confiabilidade = json_decode($retorno, true);
         curl_close($ch_confiabilidade);
         return $json_output_confiabilidade;
     }
@@ -506,7 +512,7 @@ final class LoginControladorRN extends InfraRN
      */
     private function pesquisarUserLoginUnico($cpf, $email){
         $objLoginUnicoDto = new LoginUnicoDTO();
-        $objLoginUnicoDto->setDblCpf($cpf);
+        $objLoginUnicoDto->setDblCpfContato($cpf);
         $objLoginUnicoDto->setStrEmail($email);
         $objLoginUnicoDto->retTodos(true);
         $loginBD  = new LoginUnicoBD($this->getObjInfraIBanco());
@@ -521,7 +527,7 @@ final class LoginControladorRN extends InfraRN
      * @param array $token
      * @return void
      */
-    public function pesquisarUsuarioConectado($token)
+    protected function pesquisarUsuarioConectado($token)
     {
         try {
             $update = false;
@@ -535,8 +541,8 @@ final class LoginControladorRN extends InfraRN
                 $usuarioDTO->retTodos(true);
         
                 $usuarioDB  = new UsuarioBD($this->getObjInfraIBanco());
-                $dados = $usuarioDB->listar($usuarioDTO);
-                $user = $dados[0];
+                $dados = $usuarioDB->consultar($usuarioDTO);
+                $user = $dados;
                 $update = true;
             }
 

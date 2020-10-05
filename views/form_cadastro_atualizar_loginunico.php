@@ -87,9 +87,11 @@ try {
                     $txtCep = InfraUtil::retirarFormatacao($txtCep);
                     $txtCpf = InfraUtil::retirarFormatacao($txtCpf);
                     $sinSelo = SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_SIN_SELO') ? 'S' : 'N';
+                    $idContato = SessaoSEIExterna::getInstance()->getAtributo('ID_CONTATO_USUARIO_EXTERNO');
+                    $staTipoUsuarioExterno = ($sinSelo == 'S') ? UsuarioRN::$TU_EXTERNO : UsuarioRN::$TU_EXTERNO_PENDENTE;
 
                     BancoSEI::getInstance()->executarSql(
-                    "UPDATE contato 
+                        "UPDATE contato 
                         set nome = \"$txtNome\", 
                         cpf = \"$txtCpf\", 
                         rg = \"$txtRg\", 
@@ -105,31 +107,33 @@ try {
                         cep = \"$txtCep\", 
                         email = \"$txtEmail\", 
                         sigla = \"$txtEmail\",
-                        sin_ativo = \"$sinSelo\"
-                    WHERE id_contato = ". SessaoSEIExterna::getInstance()->getAtributo('ID_CONTATO_USUARIO_EXTERNO')
-                );
+                        sin_ativo = \"$sinSelo\",
+                        id_contato_associado = $idContato
+                    WHERE id_contato = $idContato"
+                    );
 
                     BancoSEI::getInstance()->executarSql(
-                    "UPDATE usuario
+                        "UPDATE usuario
                         set sigla = \"$txtEmail\", 
                         nome = \"$txtNome\", 
                         idx_usuario = \"$idx\",
-                        sin_ativo = \"$sinSelo\",
+                        sin_ativo = \"S\",
+                        sta_tipo = \"$staTipoUsuarioExterno\"
                         senha = null
                     WHERE id_usuario = ". SessaoSEIExterna::getInstance()->getAtributo('ID_USUARIO_EXTERNO')
-                );
+                    );
 
                     $seqUserLogin = SessaoSEIExterna::getInstance()->getAtributo('ID_USUARIO_LOGIN');
                     $seqUsuario = SessaoSEIExterna::getInstance()->getAtributo('ID_USUARIO_EXTERNO');
                     $updateDate = date('Y-m-d H:i:s');
 
                     BancoSEI::getInstance()->executarSql(
-                    "INSERT INTO usuario_login_unico (
+                        "INSERT INTO usuario_login_unico (
                 id_usuario_login_unico, id_usuario, dth_atualizacao, cpf, email
               ) VALUES (
                 $seqUserLogin, $seqUsuario, '".$updateDate."', '".$txtCpf."', '".$txtEmail."'
               )"
-                );
+                    );
     
                     BancoSEI::getInstance()->confirmarTransacao();
                     BancoSEI::getInstance()->fecharConexao();
@@ -155,7 +159,10 @@ try {
                 $objOrgaoDTO = $objOrgaoRN->consultarRN1352($objOrgaoDTO);
 
                 if ($objOrgaoDTO == null) {
-                  throw new InfraException('Órgão não encontrado [' . $objUsuarioDTO->getNumIdOrgao() . '].');
+                    throw new InfraException('Órgão não encontrado [' . $objUsuarioDTO->getNumIdOrgao() . '].');
+                }
+
+                if ($sinSelo == 'N') {
                 }
 
                 $objInfraParametro = new InfraParametro(BancoSEI::getInstance());
@@ -166,48 +173,51 @@ try {
                 $objEmailSistemaDTO->retStrConteudo();
 
                 $action = 'controlador_externo.php?acao=usuario_externo_sair';
-                if (SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_SIN_SELO') == 'S') {         
-                  $objEmailSistemaDTO->setStrIdEmailSistemaModulo('MD_LOGINUNICO_CADASTRO_USUARIO');
-                  $action = 'controlador_externo.php?acao=usuario_externo_controle_acessos';
+                if (SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_SIN_SELO') == 'S') {
+                    $objEmailSistemaDTO->setStrIdEmailSistemaModulo('MD_LOGINUNICO_CADASTRO_USUARIO');
+                    $action = 'controlador_externo.php?acao=usuario_externo_controle_acessos';
                 } else {
-                  $objEmailSistemaDTO->setNumIdEmailSistema(EmailSistemaRN::$ES_CADASTRO_USUARIO_EXTERNO);
+                    $objEmailSistemaDTO->setNumIdEmailSistema(EmailSistemaRN::$ES_CADASTRO_USUARIO_EXTERNO);
                 }
-                
+                  
                 $objEmailSistemaRN = new EmailSistemaRN();
                 $objEmailSistemaDTO = $objEmailSistemaRN->consultar($objEmailSistemaDTO);
 
-                if($objEmailSistemaDTO){
-                  $strDe = $objEmailSistemaDTO->getStrDe();
-                  $strDe = str_replace('@sigla_sistema@',SessaoSEI::getInstance()->getStrSiglaSistema(),$strDe);
-                  $strDe = str_replace('@email_sistema@',$objInfraParametro->getValor('SEI_EMAIL_SISTEMA'),$strDe);
+                if ($objEmailSistemaDTO) {
+                    $strDe = $objEmailSistemaDTO->getStrDe();
+                    $strDe = str_replace('@sigla_sistema@', SessaoSEI::getInstance()->getStrSiglaSistema(), $strDe);
+                    $strDe = str_replace('@email_sistema@', $objInfraParametro->getValor('SEI_EMAIL_SISTEMA'), $strDe);
 
-                  $strPara = $objEmailSistemaDTO->getStrPara();
-                  $strPara = str_replace('@email_usuario_externo@',$txtEmail,$strPara);
-                  
-                  $strAssunto = $objEmailSistemaDTO->getStrAssunto();
-                  $strAssunto = str_replace('@sigla_sistema@',SessaoSEI::getInstance()->getStrSiglaSistema(),$strAssunto);
-                  $strAssunto = str_replace('@sigla_orgao@',$objOrgaoDTO->getStrSigla(),$strAssunto);
+                    $strPara = $objEmailSistemaDTO->getStrPara();
+                    $strPara = str_replace('@email_usuario_externo@', $txtEmail, $strPara);
+                    
+                    $strAssunto = $objEmailSistemaDTO->getStrAssunto();
+                    $strAssunto = str_replace('@sigla_sistema@', SessaoSEI::getInstance()->getStrSiglaSistema(), $strAssunto);
+                    $strAssunto = str_replace('@sigla_orgao@', $objOrgaoDTO->getStrSigla(), $strAssunto);
 
-                  $strConteudo = $objEmailSistemaDTO->getStrConteudo();
-                  $strConteudo = str_replace('@nome_usuario_externo@',$txtNome,$strConteudo);
-                  $strConteudo = str_replace('@email_usuario_externo@',$objOrgaoDTO->getStrSigla(),$strConteudo);
-                  $strConteudo = str_replace('@link_login_usuario_externo@',ConfiguracaoSEI::getInstance()->getValor('SEI','URL').'/controlador_externo.php?acao=usuario_externo_logar&id_orgao_acesso_externo='.$objOrgaoDTO->getNumIdOrgao(),$strConteudo);
-                  $strConteudo = str_replace('@sigla_orgao@',$objOrgaoDTO->getStrSigla(),$strConteudo);
-                  $strConteudo = str_replace('@descricao_orgao@',$objOrgaoDTO->getStrDescricao(),$strConteudo);
+                    $strConteudo = $objEmailSistemaDTO->getStrConteudo();
+                    $strConteudo = str_replace('@nome_usuario_externo@', $txtNome, $strConteudo);
+                    $strConteudo = str_replace('@email_usuario_externo@', $objOrgaoDTO->getStrSigla(), $strConteudo);
+                    $strConteudo = str_replace('@link_login_usuario_externo@', ConfiguracaoSEI::getInstance()->getValor('SEI', 'URL').'/controlador_externo.php?acao=usuario_externo_logar&id_orgao_acesso_externo='.$objOrgaoDTO->getNumIdOrgao(), $strConteudo);
+                    $strConteudo = str_replace('@sigla_orgao@', $objOrgaoDTO->getStrSigla(), $strConteudo);
+                    $strConteudo = str_replace('@descricao_orgao@', $objOrgaoDTO->getStrDescricao(), $strConteudo);
 
-                  $site = $objOrgaoDTO->isSetStrSitioInternetContato() ? $objOrgaoDTO->getStrSitioInternetContato() : '';
-                  $strConteudo = str_replace('@sitio_internet_orgao@',$ite,$strConteudo);
+                    $site = $objOrgaoDTO->isSetStrSitioInternetContato() ? $objOrgaoDTO->getStrSitioInternetContato() : '';
+                    $strConteudo = str_replace('@sitio_internet_orgao@', $ite, $strConteudo);
 
-                  $objEmailDTO = new EmailDTO();
-                  $objEmailDTO->setStrDe($strDe);
-                  $objEmailDTO->setStrPara($strPara);
-                  $objEmailDTO->setStrAssunto($strAssunto);
-                  $objEmailDTO->setStrMensagem($strConteudo);
+                    $objEmailDTO = new EmailDTO();
+                    $objEmailDTO->setStrDe($strDe);
+                    $objEmailDTO->setStrPara($strPara);
+                    $objEmailDTO->setStrAssunto($strAssunto);
+                    $objEmailDTO->setStrMensagem($strConteudo);
 
-                  EmailRN::processar(array($objEmailDTO));
+                    EmailRN::processar(array($objEmailDTO));
+                    PaginaSEIExterna::getInstance()->adicionarMensagem(_('IMPORTANTE: As instruções para ativar o seu cadastro foram encaminhadas para o seu e-mail.'));
+                  }
                 }
 
                 header('Location: ' . SessaoSEIExterna::getInstance()->assinarLink($action.'&id_orgao_acesso_externo='.$_GET['id_orgao_acesso_externo']));
+                die;
             }
         }
 
