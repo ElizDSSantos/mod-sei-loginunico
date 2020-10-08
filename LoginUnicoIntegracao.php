@@ -25,7 +25,7 @@ class LoginUnicoIntegracao extends SeiIntegracao
     public function montarBotaoAutenticacaoExterna()
     {
         $controlador = new LoginControladorRN();
-        if (SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN')) {
+        if (SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_EXTERNO_TOKEN')) {
             session_destroy();
         }
         PaginaSEIExterna::getInstance()->adicionarStyle('modulos/loginunico/css/style.css');
@@ -39,7 +39,7 @@ class LoginUnicoIntegracao extends SeiIntegracao
         //return null;
     }
 
-    public function validarSenhaExterna(LoginUnicoAPI $objLoginUnicoAPI)
+    public function validarSenhaExterna(LoginExternoAPI $objLoginExternoAPI)
     {
         return true;
     }

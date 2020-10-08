@@ -126,7 +126,7 @@ final class LoginControladorRN extends InfraRN
     {
         $CODE = $dados["code"];
 
-        if (isset($CODE) && (!SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN') || $_SESSION['validar_assinatura'])) {
+        if (isset($CODE) && (!SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_EXTERNO_TOKEN') || $_SESSION['validar_assinatura'])) {
             $json_output_tokens = $this->gerarAccessToken($dados);
             $json_output_jwk = $this->gerarJwk();
 
@@ -135,11 +135,11 @@ final class LoginControladorRN extends InfraRN
             
             try {
                 $json_output_payload_id_token = $this->processToClaims($id_token, $json_output_jwk);
-                SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_TOKEN', $json_output_payload_id_token);
+                SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_EXTERNO_TOKEN', $json_output_payload_id_token);
                 $cpf = $json_output_payload_id_token['sub'];
                 $selos = $this->obterSelos($id_token, $cpf);
                 $dadosReceita = $this->obterDadosReceita($id_token);
-                SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_TOKEN_ENDERECO', $dadosReceita);
+                SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_EXTERNO_TOKEN_ENDERECO', $dadosReceita);
                 $ecnpj = $this->obterSeloCNPJ($json_output_payload_id_token, $json_output_tokens);
                 $getDadosUser = $this->pesquisarUsuario($json_output_payload_id_token);
                 $userSei = $getDadosUser['user'];
@@ -166,7 +166,7 @@ final class LoginControladorRN extends InfraRN
                 throw $e;
             }
         } else {
-            $getDadosUser = $this->pesquisarUsuario(SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN'));
+            $getDadosUser = $this->pesquisarUsuario(SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_EXTERNO_TOKEN'));
             $userSei = $getDadosUser['user'];
             $atualizarUser = $getDadosUser['update'];
         }

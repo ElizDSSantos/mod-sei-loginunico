@@ -2756,15 +2756,15 @@ class DocumentoRN extends InfraRN {
         }else{
           // alteracoes Login Unico
           $loginUnico = false;
-          $objLoginUnicoAPI = new LoginUnicoAPI();
-          $objLoginUnicoAPI->setPassword($objAssinaturaDTO->getStrSenhaUsuario());
-          $objLoginUnicoAPI->setToken(SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN'));  
+          $objLoginExternoAPI = new LoginExternoAPI();
+          $objLoginExternoAPI->setPassword($objAssinaturaDTO->getStrSenhaUsuario());
+          $objLoginExternoAPI->setToken(SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_EXTERNO_TOKEN'));  
      
           $conf = new ConfiguracaoSEI();
 
           if(!$conf->getArrConfiguracoes()['SEI']['Producao']){
             foreach ($SEI_MODULOS as $seiModulo) {
-              if (($arrRetIntegracao = $seiModulo->executar('validarSenhaExterna', $objLoginUnicoAPI)) != null){
+              if (($arrRetIntegracao = $seiModulo->executar('validarSenhaExterna', $objLoginExternoAPI)) != null){
                 // verificar senha do usuario no gov br
                 $loginUnico = true;
               }

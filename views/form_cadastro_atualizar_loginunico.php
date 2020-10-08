@@ -10,10 +10,10 @@ try {
     InfraDebug::getInstance()->setBolDebugInfra(false);
     InfraDebug::getInstance()->limpar();
 
-    $token = SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN');
+    $token = SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_EXTERNO_TOKEN');
     $objLoginUnico = new LoginControladorRN();
     $user = $objLoginUnico->pesquisarUsuario($token)['user'];
-    $dadosReceita =  SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN_ENDERECO');
+    $dadosReceita =  SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_EXTERNO_TOKEN_ENDERECO');
    
     $tel = $user->getStrTelefoneFixoContato();
     $cel = $user->getStrTelefoneCelularContato();
