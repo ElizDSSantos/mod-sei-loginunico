@@ -1,7 +1,7 @@
 <?
-session_start();
 try {
     require_once dirname(__FILE__).'/../../SEI.php';
+    session_start();
 
     switch($_GET['acao']) {
     case 'usuario_loginunico_atualizar':
@@ -15,6 +15,14 @@ try {
     default:
         $controlador = new LoginControladorRN();
         if(isset($_GET['code']) && isset($_GET['state'])){
+            $codigoRevalidacao=SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_STATE_REVALIDACAO');
+                        
+            if($_GET['state']==$codigoRevalidacao){
+                SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_STATE_REVALIDACAO',null);
+                $controlador->assinarLoginUnico();
+                return;
+            } 
+
             $controlador->autenticar($_GET);
             return;
         }

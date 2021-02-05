@@ -39,8 +39,42 @@ class LoginUnicoIntegracao extends SeiIntegracao
         //return null;
     }
 
-    public function validarSenhaExterna(LoginUnicoAPI $objLoginUnicoAPI)
+    public function montarBotaoAssinaturaExterna()
     {
+        $bolLoginGovBr = SessaoSEIExterna::getInstance()->getAtributo('LOGIN_GOV_BR');
+
+        if ($bolLoginGovBr) {
+
+            $dados = [
+                'id_documento' => $_GET['id_documento'],
+                'id_orgao_acesso_externo' => $_GET['id_orgao_acesso_externo'],
+                'id_acesso_externo' => $_GET['id_acesso_externo'],
+            ];
+            SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_DADOS_DOC', $dados);
+            $controlador = new LoginControladorRN();
+            $url = $controlador->gerarURL(true);
+            echo "<script>
+            window.resizeTo(500, 800);
+            window.location.href = '$url';
+            </script>";
+        }
+    }
+
+
+    public function validarSenhaExterna(LoginExternoAPI $objLoginExternoAPI)
+    {
+        $controlador = new LoginControladorRN();
+        $validacao = $controlador->validarTokenAssinatura($_GET);
+        echo "<script>
+        window.opener.location.reload();
+        window.close();
+        </script>";
+        return $validacao;
+    }
+
+
+    public function validarSeLoginExterno(){
+
         return true;
     }
 

@@ -58,7 +58,7 @@ try {
         if($dadosReceita['nomePaisExterior']){
           $idPaisExterior = $objLoginUnico->pesquisarPais($dadosReceita['nomePaisExterior']);
         }else{
-          $idsCidadeUf = $objLoginUnico->convertDadoTokenSei($dadosReceita['municipio'], $dadosReceita['uf']);
+          $idsCidadeUf = $objLoginUnico->convertDadoTokenSei($dadosReceita);
           $idUfToken = $idsCidadeUf['iduf'];
           $idCidadeToken = $idsCidadeUf['idcidade'];
         }
@@ -86,7 +86,7 @@ try {
                     $txtTelefoneFixo = InfraUtil::retirarFormatacao($txtTelefoneFixo);
                     $txtCep = InfraUtil::retirarFormatacao($txtCep);
                     $txtCpf = InfraUtil::retirarFormatacao($txtCpf);
-                    $sinSelo = SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_SIN_SELO') ? 'S' : 'N';
+                    $sinSelo = SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_SIN_NIVEL') ? 'S' : 'N';
 
                     BancoSEI::getInstance()->executarSql(
                     "UPDATE contato 
@@ -166,7 +166,7 @@ try {
                 $objEmailSistemaDTO->retStrConteudo();
 
                 $action = 'controlador_externo.php?acao=usuario_externo_sair';
-                if (SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_SIN_SELO') == 'S') {         
+                if (SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_SIN_NIVEL') == 'S') {         
                   $objEmailSistemaDTO->setStrIdEmailSistemaModulo('MD_LOGINUNICO_CADASTRO_USUARIO');
                   $action = 'controlador_externo.php?acao=usuario_externo_controle_acessos';
                 } else {

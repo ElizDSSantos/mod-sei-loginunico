@@ -25,14 +25,17 @@ final class LoginControladorRN extends InfraRN
     public function __construct()
     {
         $conf = new ConfiguracaoSEI();
-        $this->client_id      = $conf->getArrConfiguracoes()['LoginUnico']['client_id'];
-        $this->secret         = $conf->getArrConfiguracoes()['LoginUnico']['secret'];
-        $this->url_provider   = $conf->getArrConfiguracoes()['LoginUnico']['url_provider'];
-        $this->redirect_uri   = $conf->getArrConfiguracoes()['LoginUnico']['redirect_url'];
-        $this->scope          = $conf->getArrConfiguracoes()['LoginUnico']['scope'];
-        $this->url_servico    = $conf->getArrConfiguracoes()['LoginUnico']['url_servicos'];
-        $this->selo_confianca = $conf->getArrConfiguracoes()['LoginUnico']['selo_confianca'];
-        $this->id_orgao       = $conf->getArrConfiguracoes()['LoginUnico']['orgao'];
+        $this->client_id             =  $conf->getArrConfiguracoes()['LoginUnico']['client_id'];
+        $this->secret                =  $conf->getArrConfiguracoes()['LoginUnico']['secret'];
+        $this->url_provider          =  $conf->getArrConfiguracoes()['LoginUnico']['url_provider'];
+        $this->redirect_uri          =  $conf->getArrConfiguracoes()['LoginUnico']['redirect_url'];
+        $this->scope                 =  $conf->getArrConfiguracoes()['LoginUnico']['scope'];
+        $this->url_servico           =  $conf->getArrConfiguracoes()['LoginUnico']['url_servicos'];
+        $this->url_revalidacao       =  $conf->getArrConfiguracoes()['LoginUnico']['url_revalidacao'];
+        $this->niveis_confiabilidade =  $conf->getArrConfiguracoes()['LoginUnico']['niveis_confiabilidade'];
+        $this->id_orgao              =  $conf->getArrConfiguracoes()['LoginUnico']['orgao'];
+        $this->client_id_validacao   =  $conf->getArrConfiguracoes()['LoginUnico']['client_id_validacao'];
+        $this->secret_validacao      =  $conf->getArrConfiguracoes()['LoginUnico']['secret_validacao'];
     }
 
      /**
@@ -40,14 +43,29 @@ final class LoginControladorRN extends InfraRN
       *
       * @return void
       */
-    public function gerarURL()
+    public function gerarURL($bolRevalidacao=false)
     {
-        $uri = $this->url_provider."/authorize?response_type=code"
-            ."&client_id=". $this->client_id
-            ."&scope=".$this->scope
+        $urlServico=$this->url_provider;
+        $scope=$this->scope;
+        $state=$this->getRandomHex(12);
+        
+        $client_id=$this->client_id;
+        if($bolRevalidacao){
+            SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_STATE_REVALIDACAO',$state);
+            $urlServico=$this->url_revalidacao ;
+            $scope="password-validation";
+            $client_id=$this->client_id_validacao;
+        }
+        $uri = $urlServico ."/authorize"
+            ."?response_type=code"
+            ."&client_id=". $client_id
+            ."&scope=".$scope
             ."&redirect_uri=".urlencode($this->redirect_uri)
-            ."&nonce=".$this->getRandomHex()
-            ."&state=".$this->getRandomHex();
+            ."&state=".$state;
+        
+
+        $uri.= $bolRevalidacao?"":"&nonce=".$this->getRandomHex();
+            
         return $uri;
     }
 
@@ -68,7 +86,7 @@ final class LoginControladorRN extends InfraRN
       * @param [type] $dados
       * @return void
       */
-    public function gerarAccessToken($dados)
+    public function gerarAccessToken($dados,$revalidacao=false)
     {
         $campos = array(
             'grant_type' => urlencode('authorization_code'),
@@ -76,20 +94,29 @@ final class LoginControladorRN extends InfraRN
             'redirect_uri' => urlencode($this->redirect_uri)
         );
 
+        if($revalidacao){
+            $campos['client_id']=$this->client_id_validacao;
+            $url_token=$this->url_revalidacao;
+            $authBase64=$this->client_id_validacao .":". $this->secret_validacao;
+        }else{
+            $url_token=$this->url_provider;
+            $authBase64=$this->client_id.":".$this->secret;
+        }
+
         $fields_string = '';
         foreach ($campos as $key=>$value) {
             $fields_string .= $key.'='.$value.'&';
         }
 
-        rtrim($fields_string, '&');
+        $fields_string=rtrim($fields_string, '&');
         $ch_token = curl_init();
-        curl_setopt($ch_token, CURLOPT_URL, $this->url_provider . "/token");
+        curl_setopt($ch_token, CURLOPT_URL, $url_token . "/token");
         curl_setopt($ch_token, CURLOPT_POSTFIELDS, $fields_string);
         curl_setopt($ch_token, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch_token, CURLOPT_SSL_VERIFYPEER, true);
         $headers = array(
             'Content-Type:application/x-www-form-urlencoded',
-            'Authorization: Basic '. base64_encode($this->client_id.":".$this->secret)
+            'Authorization: Basic '. base64_encode($authBase64)
         );
         curl_setopt($ch_token, CURLOPT_HTTPHEADER, $headers);
         $json_output_tokens = json_decode(curl_exec($ch_token), true);
@@ -103,9 +130,9 @@ final class LoginControladorRN extends InfraRN
      *
      * @return void
      */
-    public function gerarJwk()
+    public function gerarJwk($revalidacao=false)
     {
-        $url = $this->url_provider . "/jwk" ;
+        $url = $revalidacao?$this->url_revalidacao."/jwks" :$this->url_provider."/jwk"  ;
         $ch_jwk = curl_init();
         curl_setopt($ch_jwk, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch_jwk, CURLOPT_URL, $url);
@@ -116,54 +143,190 @@ final class LoginControladorRN extends InfraRN
         return $json_output_jwk;
     }
 
+ 
+    
+    protected function validarTokenAssinaturaControlado($dados){
+
+        try{
+            $tokenRevalidacao=$this->revalidarAssinatura($dados);
+            $tokenLoginUnico=SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN');
+            $timestamp=time();
+            if($timestamp >= $tokenRevalidacao['exp']){
+                throw new InfraException('Token de Revalidação GovBR Expirado, execute a assinatura novamente');
+            }
+            if($tokenRevalidacao['sub'] != $tokenLoginUnico['sub']){
+                SessaoSEIExterna::getInstance()->removerDadosSessao();
+                echo "<script>
+                window.opener.location.reload();
+                </script>";
+                throw new InfraException("Usuário tentando assinar é diferente do usuário logado, 
+                validacao=".$tokenRevalidacao['sub'] .", loginUnico=".$tokenLoginUnico['sub'] .
+                 ", nome=" . $tokenLoginUnico['name'] . ", email=" . $tokenLoginUnico['email'] );
+                
+            }else{
+                SessaoSEI::getInstance()->validarAuditarPermissao('documento_assinar',__METHOD__,$tokenLoginUnico);
+                return true;
+            }
+         
+
+        }catch(Exception $e){
+            
+            throw new InfraException("Erro ao validar token de revalidação GovBr",$e);
+
+        }
+
+        
+    }
+
+
+    /**
+     * Realiza a assinatura do documento usando a lógica do SEI
+     *
+     * @return void
+     */
+
+    protected function assinarLoginUnicoControlado(){
+
+        try{
+
+      $dados=SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_DADOS_DOC');
+      if($dados==''){
+        throw new InfraException('Dados dos documentos para assiantura via GovBr não encontrados, tentar novamente');
+      }
+
+      $objAcessoExternoDTO = new AcessoExternoDTO();
+      $objAcessoExternoDTO->retDblIdProtocoloAtividade();
+      $objAcessoExternoDTO->retNumIdUnidadeAtividade();
+      $objAcessoExternoDTO->setNumIdAcessoExterno($dados['id_acesso_externo']);
+      $objAcessoExternoDTO->setStrStaTipo(AcessoExternoRN::$TA_ASSINATURA_EXTERNA);
+
+      $objAcessoExternoRN = new AcessoExternoRN();
+      $objAcessoExternoDTO = $objAcessoExternoRN->consultar($objAcessoExternoDTO);
+
+      if ($objAcessoExternoDTO == null) {
+        throw new InfraException('Registro de Acesso Externo não encontrado.');
+      }
+
+        $objDocumentoDTO = new DocumentoDTO();
+        $objDocumentoDTO->retDblIdDocumento();
+        $objDocumentoDTO->setDblIdDocumento($dados['id_documento']);
+        $objDocumentoDTO->setDblIdProcedimento($objAcessoExternoDTO->getDblIdProtocoloAtividade());
+  
+        $objDocumentoRN = new DocumentoRN();
+        $objDocumentoDTO = $objDocumentoRN->consultarRN0005($objDocumentoDTO);
+  
+        if ($objDocumentoDTO == null) {
+            throw new InfraException('Documento não encontrado.');
+        }
+
+        $objUsuarioDTO = new UsuarioDTO();
+      $objUsuarioDTO->setNumIdUsuario(SessaoSEIExterna::getInstance()->getNumIdUsuarioExterno());
+
+      $objUsuarioRN = new UsuarioRN();
+      $arrCargoFuncao = InfraArray::converterArrInfraDTO($objUsuarioRN->listarCargoFuncao($objUsuarioDTO),'CargoFuncao');
+
+      if (count($arrCargoFuncao) == 1) {
+        $strDisplayCargoFuncao = 'display:none;';
+        $strCargoFuncao = $arrCargoFuncao[0];
+      } else {
+        $strCargoFuncao = $_POST['selCargoFuncao'];
+      }
+
+      $objAssinaturaDTO = new AssinaturaDTO();
+      $objAssinaturaDTO->setStrStaFormaAutenticacao(AssinaturaRN::$TA_SENHA);
+      $objAssinaturaDTO->setNumIdUsuario(SessaoSEIExterna::getInstance()->getNumIdUsuarioExterno());
+      $objAssinaturaDTO->setStrSenhaUsuario('');
+      $objAssinaturaDTO->setStrCargoFuncao($strCargoFuncao);
+      $objAssinaturaDTO->setArrObjDocumentoDTO(array($objDocumentoDTO));
+
+      $numIdUnidadeAnterior = SessaoSEI::getInstance()->getNumIdUnidadeAtual();
+      $numIdUsuarioAnterior = SessaoSEI::getInstance()->getNumIdUsuario();
+      
+      SessaoSEI::getInstance()->setNumIdUnidadeAtual($objAcessoExternoDTO->getNumIdUnidadeAtividade());
+      SessaoSEI::getInstance()->setNumIdUsuario(SessaoSEIExterna::getInstance()->getNumIdUsuarioExterno());
+      $objDocumentoRN = new DocumentoRN();
+      $objDocumentoRN->assinar($objAssinaturaDTO);
+      
+      SessaoSEI::getInstance()->setNumIdUnidadeAtual($numIdUnidadeAnterior);
+      SessaoSEI::getInstance()->setNumIdUsuario($numIdUsuarioAnterior);
+
+
+    }catch(Exception $e){
+
+        SessaoSEI::getInstance()->setNumIdUnidadeAtual($numIdUnidadeAnterior);
+        SessaoSEI::getInstance()->setNumIdUsuario($numIdUsuarioAnterior);
+
+        $e->lancarValidacoes();
+        throw new InfraException('Erro ao assinar pelo govBR',$e);       
+        
+    }
+
+
+        
+    }
+
+
+    /**
+     * Realiza revalidação da senha do usuário com os dados vindos do GovBr
+     *
+     * @param array $dados
+     * @return void
+     */
+    public function revalidarAssinatura($dados)
+    {
+        try {
+            $json_output_tokens = $this->gerarAccessToken($dados, true);
+            $json_output_jwk = $this->gerarJwk(true);
+            $access_token = $json_output_tokens['access_token'];
+            return $this->processToClaims($access_token, $json_output_jwk);
+        } catch (Exception $e) {
+            throw new InfraException("Erro ao revalidar assinatura no GovBr", $e);
+        }
+    }
+
+
     /**
      * Realiza autenticação do usuário com os dados vindos do GovBr
      *
      * @param array $dados
      * @return void
      */
-    public function autenticar($dados)
+    protected function autenticarControlado($dados)
     {
         $CODE = $dados["code"];
-
-        if (isset($CODE) && (!SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN') || $_SESSION['validar_assinatura'])) {
+        if (isset($CODE) && (!SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN'))) {
             $json_output_tokens = $this->gerarAccessToken($dados);
             $json_output_jwk = $this->gerarJwk();
-
             $access_token = $json_output_tokens['access_token'];
             $id_token = $json_output_tokens['id_token'];
-            $cpf = $json_output_payload_id_token['sub'];
-
             try {
                 $json_output_payload_id_token = $this->processToClaims($id_token, $json_output_jwk);
+                $cpf = $json_output_payload_id_token['sub'];
                 SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_TOKEN', $json_output_payload_id_token);
-                $selos = $this->obterSelos($id_token, $cpf);
-                $dadosReceita = $this->obterDadosReceita($id_token);
+                $niveis = $this->obterNiveis($access_token, $cpf);
+                $dadosReceita = $this->obterDadosReceita($access_token);
                 SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_TOKEN_ENDERECO', $dadosReceita);
-                $ecnpj = $this->obterSeloCNPJ($json_output_payload_id_token, $json_output_tokens);
                 $getDadosUser = $this->pesquisarUsuario($json_output_payload_id_token);
                 $userSei = $getDadosUser['user'];
                 $atualizarUser = $getDadosUser['update'];
-                $sinSelo = $this->checkUserHasSelo($selos);
-                SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_SIN_SELO', $sinSelo);
+                $sinNivel = $this->checkUserHasNivel($niveis);
+                SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_SIN_NIVEL', $sinNivel);
                 $associar = false;
                 $duplicidade = false;
-
-                if($userSei && ($userSei->getDblCpfContato() === $json_output_payload_id_token['sub'])){
+                if($userSei && $atualizarUser && $userSei->getStrSenha()!=null && ($userSei->getDblCpfContato() === $json_output_payload_id_token['sub'])){
                     $associar = true;
-                }else if($userSei && ($userSei->getDblCpfContato() !== $json_output_payload_id_token['sub'])){
+                }else if($userSei && $atualizarUser && $userSei->getStrSenha()!=null && ($userSei->getDblCpfContato() !== $json_output_payload_id_token['sub'])){
                     $duplicidade = true;
                 }
-
                 if (!$userSei) {
-                    $this->cadastraUsuario($json_output_payload_id_token, $sinSelo);
+                    $this->cadastraUsuario($json_output_payload_id_token, $sinNivel);
                     $getDadosUser = $this->pesquisarUsuario($json_output_payload_id_token);
                     $userSei = $getDadosUser['user'];
                     $atualizarUser = $getDadosUser['update'];
                 }
                 
             } catch (Exception $e) {
-                $detalhamentoErro = $e;
+                throw new InfraException("Erro ao autenticar pelo GovBr", $e);
             }
         } else {
             $getDadosUser = $this->pesquisarUsuario(SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN'));
@@ -171,7 +334,13 @@ final class LoginControladorRN extends InfraRN
             $atualizarUser = $getDadosUser['update'];
         }
 
-        $this->login($userSei, $atualizarUser, $associar, $duplicidade);      
+        $dados = [
+            "user" => $userSei,
+            "atualizarUser" => $atualizarUser,
+            "associar" => $associar,
+            "duplicidade" => $duplicidade
+        ];
+        $this->login($dados);      
     }
 
      /**
@@ -202,12 +371,17 @@ final class LoginControladorRN extends InfraRN
       * @param boolean $duplicidade
       * @return void
       */
-    private function login($user, $atualizar, $associar, $duplicidade)
+    protected function loginControlado($dados)
     {
         try {
-            if (!BancoSEI::getInstance()->getIdConexao()) {
-                BancoSEI::getInstance()->abrirConexao();
-            }
+            $user=$dados["user"];
+            $atualizar=$dados["atualizarUser"];
+            $associar=$dados["associar"];
+            $duplicidade=$dados["duplicidade"];
+            
+            SessaoSEIExterna::getInstance()->configurarAcessoExterno(null);
+
+            
             $_SESSION['EXTERNO_TOKEN'] = md5(uniqid(mt_rand()));
             $seqUserLogin = $this->getObjInfraIBanco()->getValorSequencia('seq_usuario_login_unico');
             SessaoSEIExterna::getInstance()->setAtributo('ID_USUARIO_EXTERNO', $user->getNumIdUsuario());
@@ -219,6 +393,7 @@ final class LoginControladorRN extends InfraRN
             SessaoSEIExterna::getInstance()->setAtributo('DESCRICAO_ORGAO_USUARIO_EXTERNO', $user->getStrDescricaoOrgao());
             SessaoSEIExterna::getInstance()->setAtributo('ID_CONTATO_USUARIO_EXTERNO', $user->getNumIdContato());
             SessaoSEIExterna::getInstance()->setAtributo('RAND_USUARIO_EXTERNO', uniqid(mt_rand(), true));
+            SessaoSEIExterna::getInstance()->setAtributo('LOGIN_GOV_BR', true);
 
             $objUsuarioDTOAuditoria = clone($user);
 
@@ -248,16 +423,16 @@ final class LoginControladorRN extends InfraRN
     }
 
      /**
-      * Verifica se o usuário possui algum dos selos requeridos pelo ÓRGAO
+      * Verifica se o usuário possui algum dos niveis requeridos pelo ÓRGAO
       *
-      * @param array $selos
+      * @param array $niveis
       * @return void
       */
-    public function checkUserHasSelo($selos)
+    public function checkUserHasNivel($niveis)
     {
-        foreach ($selos as $selosUser) {
+        foreach ($niveis as $nivelUser) {
             //if (in_array($selosUser['nivel'], $this->selo_confianca)) {
-            if (in_array($selosUser['confiabilidade']['id'], $this->selo_confianca)) {
+            if (in_array($nivelUser['id'], $this->niveis_confiabilidade)) {
                 return true;
             }
         }
@@ -347,15 +522,15 @@ final class LoginControladorRN extends InfraRN
     }
 
      /**
-      * Obter selos de confiabilidade
+      * Obter niveis de confiabilidade
       *
       * @param array $access_token
       * @return void
       */
-    public function obterSelos($access_token, $cpf)
+    public function obterNiveis($access_token, $cpf)
     {
         // $url = $this->url_servico . "/api/info/usuario/selo";
-        $url = $this->url_servico . "confiabilidades/v2/contas/$cpf/confiabilidades";
+        $url = $this->url_servico . "confiabilidades/v3/contas/$cpf/niveis?response-type=ids";
         $ch_confiabilidade = curl_init();
         curl_setopt($ch_confiabilidade, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch_confiabilidade, CURLOPT_URL, $url);
@@ -439,20 +614,15 @@ final class LoginControladorRN extends InfraRN
      * Cadastra o usuário, caso não exista
      *
      * @param mixed $token
-     * @param boolean $sinSelo
+     * @param boolean $sinNivel
      * @return void
      */
-    public function cadastraUsuario($token, $sinSelo)
+    private function cadastraUsuario($token, $sinNivel)
     {
         try {
-            if (!BancoSEI::getInstance()->getIdConexao()) {
-                BancoSEI::getInstance()->abrirConexao();
-            }
-    
-            BancoSEI::getInstance()->abrirTransacao();
 
             $seqContato = $this->getObjInfraIBanco()->getValorSequencia('seq_contato');
-            $sinAtivo = $sinSelo ? 'S' : 'N';
+            $sinAtivo = $sinNivel ? 'S' : 'N';
             $data_cadastro = date('Y-m-d H:i:s');
 
             BancoSEI::getInstance()->executarSql(
@@ -479,19 +649,7 @@ final class LoginControladorRN extends InfraRN
                         '".utf8_decode($token['name'])."', $seqContato, 0, ".UsuarioRN::$TU_EXTERNO.", 'N'
                     )"
             );
-    
-            BancoSEI::getInstance()->confirmarTransacao();
-            BancoSEI::getInstance()->fecharConexao();
         } catch (Exception $e) {
-            try {
-                BancoSEI::getInstance()->cancelarTransacao();
-            } catch (Exception $e2) {
-            }
-                
-            try {
-                BancoSEI::getInstance()->fecharConexao();
-            } catch (Exception $e2) {
-            }
                 
             throw new InfraException('Erro cadastrando usuário externo (LoginUnico).', $e);
         }
@@ -521,7 +679,7 @@ final class LoginControladorRN extends InfraRN
      * @param array $token
      * @return void
      */
-    public function pesquisarUsuarioConectado($token)
+    protected function pesquisarUsuarioConectado($token)
     {
         try {
             $update = false;
@@ -582,7 +740,7 @@ final class LoginControladorRN extends InfraRN
      * @param string $pais
      * @return void
      */
-    public function pesquisarPais($pais)
+    protected function pesquisarPaisConectado($pais)
     {
         try {
             $paisDTO = new PaisDTO();
@@ -626,9 +784,11 @@ final class LoginControladorRN extends InfraRN
      * @param string $siglaUf
      * @return void
      */
-    public function convertDadoTokenSei($nomeCidade, $siglaUf)
+    protected function convertDadoTokenSeiConectado($dadosConversao)
     {
         try {
+            $nomeCidade=$dadosConversao['municipio'];
+            $siglaUf=$dadosConversao['uf'];
             $dados = $siglaUf && $nomeCidade ? 
             $this->pesquisarCidadeUf($nomeCidade, $siglaUf) :
             array( array('iduf' => "", 'idcidade' => "") );

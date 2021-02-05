@@ -2755,29 +2755,24 @@ class DocumentoRN extends InfraRN {
 
         }else{
           // alteracoes Login Unico
-          $loginUnico = false;
-          $objLoginUnicoAPI = new LoginUnicoAPI();
-          $objLoginUnicoAPI->setPassword($objAssinaturaDTO->getStrSenhaUsuario());
-          $objLoginUnicoAPI->setToken(SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN'));  
-     
-          $conf = new ConfiguracaoSEI();
-
-          if(!$conf->getArrConfiguracoes()['SEI']['Producao']){
+          $bolLoginExterno = false;
+          $objLoginExternoAPI = new LoginExternoAPI();
+          $objLoginExternoAPI->setUsuario($objUsuarioDTO->getStrSigla());
+          $objLoginExternoAPI->setSenha($objAssinaturaDTO->getStrSenhaUsuario());
             foreach ($SEI_MODULOS as $seiModulo) {
-              if (($arrRetIntegracao = $seiModulo->executar('validarSenhaExterna', $objLoginUnicoAPI)) != null){
-                // verificar senha do usuario no gov br
-                $loginUnico = true;
+              if (($bolAutenticacaoModulo = $seiModulo->executar('validarSenhaExterna', $objLoginExternoAPI)) === true){
+              $bolLoginExterno = true;
+              break;
               }
             }
-          }else{
-            $objInfraException->lancarValidacao('Opção de assinatura via GovBr indisponível para o ambiente de produção.');
+
+          if (!$bolLoginExterno) {
+          $bcrypt = new InfraBcrypt();
+          if (!$bcrypt->verificar(md5($objAssinaturaDTO->getStrSenhaUsuario()), $objUsuarioDTO->getStrSenha())) {
+            $objInfraException->lancarValidacao('Senha inválida.');
           }
-          if (!$loginUnico) {
-            $bcrypt = new InfraBcrypt();
-            if (!$bcrypt->verificar(md5($objAssinaturaDTO->getStrSenhaUsuario()), $objUsuarioDTO->getStrSenha())) {
-              $objInfraException->lancarValidacao('Senha inválida.');
-            }
-          }
+        }
+
         }
       }
 
@@ -3299,7 +3294,21 @@ class DocumentoRN extends InfraRN {
     }
   }
 
-  protected function cancelarAssinaturaControlado(DocumentoDTO $parObjDocumentoDTO){
+  public function cancelarAssinatura(DocumentoDTO $objDocumentoDTO){
+
+    if ($this->cancelarAssinaturaInterno($objDocumentoDTO)) {
+
+      $objIndexacaoDTO = new IndexacaoDTO();
+      $objIndexacaoDTO->setArrIdProtocolos(array($objDocumentoDTO->getDblIdDocumento()));
+      $objIndexacaoDTO->setStrStaOperacao(IndexacaoRN::$TO_PROTOCOLO_METADADOS);
+
+      $objIndexacaoRN = new IndexacaoRN();
+      $objIndexacaoRN->indexarProtocolo($objIndexacaoDTO);
+    }
+
+  }
+
+  protected function cancelarAssinaturaInternoControlado(DocumentoDTO $parObjDocumentoDTO){
     try {
 
       $objInfraException = new InfraException();
@@ -3389,13 +3398,10 @@ class DocumentoRN extends InfraRN {
         $objAtividadeRN = new AtividadeRN();
         $objAtividadeRN->gerarInternaRN0727($objAtividadeDTO);
 
-        $objIndexacaoDTO = new IndexacaoDTO();
-        $objIndexacaoDTO->setArrIdProtocolos(array($parObjDocumentoDTO->getDblIdDocumento()));
-        $objIndexacaoDTO->setStrStaOperacao(IndexacaoRN::$TO_PROTOCOLO_METADADOS);
-
-        $objIndexacaoRN = new IndexacaoRN();
-        $objIndexacaoRN->indexarProtocolo($objIndexacaoDTO);
+        return true;
       }
+
+      return false;
 
     }catch(Exception $e){
       throw new InfraException('Erro cancelando assinatura.',$e);

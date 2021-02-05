@@ -13,7 +13,6 @@ try {
   require_once dirname(__FILE__).'/SEI.php';
 
   session_start();
- 
   //////////////////////////////////////////////////////////////////////////////
   InfraDebug::getInstance()->setBolLigado(false);
   InfraDebug::getInstance()->setBolDebugInfra(false);
@@ -59,7 +58,6 @@ try {
             if ($_SESSION['EXTERNO_NUM_FALHA_LOGIN'] >= $numLoginSemCaptcha && hash('SHA512', $_POST['txtCaptcha']) != $strCaptchaPesquisa) {
               $objInfraException->lancarValidacao('Código de confirmação inválido.');
             } else {
-
               $objUsuarioDTO = new UsuarioDTO();
               $objUsuarioDTO->setStrSigla($_POST['txtEmail']);
               SessaoSEIExterna::getInstance()->logar($objUsuarioDTO);
@@ -262,14 +260,19 @@ PaginaSEIExterna::getInstance()->abrirAreaDados('50em');
     &nbsp;&nbsp;&nbsp;
     <button type="button" name="btnEsqueci" id="btnEsqueci" onclick="location.href='<?=SessaoSEIExterna::getInstance()->assinarLink('controlador_externo.php?acao=usuario_externo_gerar_senha')?>'"  accesskey="E" class="infraButton" value="Esqueci minha senha" title="Esqueci minha senha">&nbsp;&nbsp;<span class="infraTeclaAtalho">E</span>squeci minha senha&nbsp;&nbsp;</button>
     <a id="lnkCadastro" href="<?=SessaoSEIExterna::getInstance()->assinarLink('controlador_externo.php?acao=usuario_externo_avisar_cadastro')?>">Clique aqui se você ainda não está cadastrado</a>
-        <?php
+    <?php
         foreach ($SEI_MODULOS as $seiModulo) {
-            if (($arrRetIntegracao = $seiModulo->executar('montarBotaoAutenticacaoExterna')) != null) {
-                echo $arrRetIntegracao;
-            }
+          
+        $boolMetodos=in_array('montarBotaoAutenticacaoExterna',get_class_methods($seiModulo));
+        try{
+          if ($boolMetodos && ($arrRetIntegracao = $seiModulo->executar('montarBotaoAutenticacaoExterna')) != null) { 
+            echo $arrRetIntegracao;
+          }
+        }catch (Exception $e){}
         }
-        ?>
-    </div>
+        ?>  
+  </div>
+
     <div id="divCaptcha">
       <? if ($_SESSION['EXTERNO_NUM_FALHA_LOGIN'] >= $numLoginSemCaptcha){ ?>
         <label id="lblCaptcha" accesskey="" class="infraLabelObrigatorio"><img src="/infra_js/infra_gerar_captcha.php?codetorandom=<?=$strCodigoParaGeracaoCaptcha;?>" alt="Não foi possível carregar a imagem de confirmação" /></label>
