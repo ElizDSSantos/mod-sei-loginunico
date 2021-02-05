@@ -1,0 +1,32 @@
+Melhorias
+
+CADE
+
+-Buscar as dependências do composer e criar realease já compiladas
+-As tabelas do Banco de Dados não seguem padrões do SEI (md-loginunico-XXX)
+-Execução de sql diretamente em diversos locais, ao invez de usar framework do Sei.
+-Verificar no modulo login unico se a versao do sei eh compativel (4^)
+-Avaliar a utilidade do form_termo_aceitação
+-No form_cadastro_atualizar_loginunico estão abrindo transacao, deveria ser um método Controlado na pasta RN
+-LoginControladorRN linha 333, avaliar a necessidade deste ELSE
+-Avaliar necessidade do método de obterFoto
+-Testar os métodos de interface com serviços da Receita Federal
+-Testes gerais nas funcionalidades e fluxos
+
+TRF4
+ 
+Pontos de extensão
+    -PaginaSeiExterna, adicionar ponto de extensão para retirar o "alterar senha"
+    -usuario_externo_assinar, para adicionar a chamada para o botão do módulo
+    -usuario_externo_login, para adicionar o botão para autenticação
+    -criacao do LoginExternoAPI 
+    -DocumentoRN, para chamar a lógica de validação de senha do módulo
+
+
+
+
+
+
+
+   
+ 
