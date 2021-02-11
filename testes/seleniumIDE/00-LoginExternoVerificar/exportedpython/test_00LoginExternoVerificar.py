@@ -26,3 +26,16 @@ class Test00LoginExternoVerificar():
     elements = self.driver.find_elements(By.XPATH, "//span[@id=\'txtComplementarBtGov\']")
     assert len(elements) > 0
   
+  def test_01VerificarLogs(self):
+    self.driver.get("http://sei.loginunico.nuvem.gov.br/sip/login.php?sigla_orgao_sistema=ME&sigla_sistema=SEI")
+    WebDriverWait(self.driver, 30000).until(expected_conditions.visibility_of_element_located((By.ID, "sbmLogin")))
+    self.driver.find_element(By.ID, "txtUsuario").send_keys("teste")
+    self.driver.find_element(By.ID, "pwdSenha").send_keys("teste")
+    self.driver.find_element(By.ID, "sbmLogin").click()
+    self.driver.find_element(By.XPATH, "//a[contains(.,\'Infra\')]").click()
+    WebDriverWait(self.driver, 30000).until(expected_conditions.visibility_of_element_located((By.LINK_TEXT, "Log")))
+    self.driver.find_element(By.LINK_TEXT, "Log").click()
+    WebDriverWait(self.driver, 30000).until(expected_conditions.presence_of_element_located((By.XPATH, "//td[contains(.,\'FIM\')]")))
+    elements = self.driver.find_elements(By.XPATH, "//td[contains(.,\'FIM\')]")
+    assert len(elements) > 0
+  
