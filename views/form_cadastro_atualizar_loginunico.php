@@ -87,49 +87,108 @@ try {
                     $txtCep = InfraUtil::retirarFormatacao($txtCep);
                     $txtCpf = InfraUtil::retirarFormatacao($txtCpf);
                     $sinSelo = SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_SIN_NIVEL') ? 'S' : 'N';
+                    $idContato = SessaoSEIExterna::getInstance()->getAtributo('ID_CONTATO_USUARIO_EXTERNO');
+                    $staTipoUsuarioExterno = ($sinSelo == 'S') ? UsuarioRN::$TU_EXTERNO : UsuarioRN::$TU_EXTERNO_PENDENTE;
 
-                    BancoSEI::getInstance()->executarSql(
-                    "UPDATE contato 
-                        set nome = \"$txtNome\", 
-                        cpf = \"$txtCpf\", 
-                        rg = \"$txtRg\", 
-                        orgao_expedidor = \"$txtExpedidor\", 
-                        telefone_fixo = \"$txtTelefoneFixo\", 
-                        telefone_celular = \"$txtTelefoneCelular\", 
-                        endereco = \"$txtEndereco\", 
-                        complemento = \"$txtComplemento\", 
-                        bairro = \"$txtBairro\",
-                        id_pais = $selPais, 
-                        id_uf = $selUf, 
-                        id_cidade = $selCidade, 
-                        cep = \"$txtCep\", 
-                        email = \"$txtEmail\", 
-                        sigla = \"$txtEmail\",
-                        sin_ativo = \"$sinSelo\"
-                    WHERE id_contato = ". SessaoSEIExterna::getInstance()->getAtributo('ID_CONTATO_USUARIO_EXTERNO')
-                );
+                    // BancoSEI::getInstance()->executarSql(
+                    // "UPDATE contato 
+                    //     set nome = \"$txtNome\", 
+                    //     cpf = \"$txtCpf\", 
+                    //     rg = \"$txtRg\", 
+                    //     orgao_expedidor = \"$txtExpedidor\", 
+                    //     telefone_fixo = \"$txtTelefoneFixo\", 
+                    //     telefone_celular = \"$txtTelefoneCelular\", 
+                    //     endereco = \"$txtEndereco\", 
+                    //     complemento = \"$txtComplemento\", 
+                    //     bairro = \"$txtBairro\",
+                    //     id_pais = $selPais, 
+                    //     id_uf = $selUf, 
+                    //     id_cidade = $selCidade, 
+                    //     cep = \"$txtCep\", 
+                    //     email = \"$txtEmail\", 
+                    //     sigla = \"$txtEmail\",
+                    //     sin_ativo = \"$sinSelo\",
+                    //     id_contato_associado = $idContato
+                    // WHERE id_contato = $idContato"
+                    // );
 
-                    BancoSEI::getInstance()->executarSql(
-                    "UPDATE usuario
-                        set sigla = \"$txtEmail\", 
-                        nome = \"$txtNome\", 
-                        idx_usuario = \"$idx\",
-                        sin_ativo = \"$sinSelo\",
-                        senha = null
-                    WHERE id_usuario = ". SessaoSEIExterna::getInstance()->getAtributo('ID_USUARIO_EXTERNO')
-                );
+
+                    $objContatoDTO=new ContatoDTO();
+                    $objContatoDTO->setStrNome($txtNome);
+                    $objContatoDTO->setDblCpf($txtCpf);
+                    $objContatoDTO->setDblRg($txtRg);
+                    $objContatoDTO->setStrOrgaoExpedidor($txtExpedidor);
+                    $objContatoDTO->setStrTelefoneFixo($txtTelefoneFixo);
+                    $objContatoDTO->setStrTelefoneCelular($txtTelefoneCelular);
+                    $objContatoDTO->setStrEndereco($txtEndereco);
+                    $objContatoDTO->setStrComplemento($txtComplemento);
+                    $objContatoDTO->setStrBairro($txtBairro);
+                    $objContatoDTO->setNumIdPais($selPais);
+                    $objContatoDTO->setNumIdUf($selUf);
+                    $objContatoDTO->setNumIdCidade($selCidade);
+                    $objContatoDTO->setStrCep($txtCep);
+                    $objContatoDTO->setStrEmail($txtEmail);
+                    $objContatoDTO->setStrSigla($txtEmail);
+                    $objContatoDTO->setStrSinAtivo($sinSelo);
+                    $objContatoDTO->setNumIdContatoAssociado($idContato);
+                    $objContatoDTO->setNumIdContato($idContato);
+
+                    $objContatoBD = new ContatoBD(BancoSEI::getInstance());
+                    $objContatoBD->alterar($objContatoDTO);
+                    
+
+                //     BancoSEI::getInstance()->executarSql(
+                //     "UPDATE usuario
+                //         set sigla = \"$txtEmail\", 
+                //         nome = \"$txtNome\", 
+                //         idx_usuario = \"$idx\",
+                //         sin_ativo = \"S\",
+                //         sta_tipo = \"$staTipoUsuarioExterno\",
+                //         senha = null
+                //     WHERE id_usuario = ". SessaoSEIExterna::getInstance()->getAtributo('ID_USUARIO_EXTERNO')
+                // );
+
+                $objUsuarioDTO=new UsuarioDTO();
+                $objUsuarioDTO->setStrSigla($txtEmail);
+                $objUsuarioDTO->setStrNome($txtNome);
+                $objUsuarioDTO->setStrIdxUsuario($idx);
+                $objUsuarioDTO->setStrSinAtivo("S");
+                $objUsuarioDTO->setStrStaTipo($staTipoUsuarioExterno);
+                $objUsuarioDTO->setStrSenha(null);
+                $objUsuarioDTO->setNumIdUsuario(SessaoSEIExterna::getInstance()->getAtributo('ID_USUARIO_EXTERNO'));
+
+                $objUsuarioBD = new UsuarioBD(BancoSEI::getInstance());
+                $objUsuarioBD->alterar($objUsuarioDTO);
+
+
+
 
                     $seqUserLogin = SessaoSEIExterna::getInstance()->getAtributo('ID_USUARIO_LOGIN');
                     $seqUsuario = SessaoSEIExterna::getInstance()->getAtributo('ID_USUARIO_EXTERNO');
-                    $updateDate = date('Y-m-d H:i:s');
+                    // $updateDate = date('Y-m-d H:i:s');
+                    $updateDate = InfraData::getStrDataHoraAtual();
 
-                    BancoSEI::getInstance()->executarSql(
-                    "INSERT INTO usuario_login_unico (
-                id_usuario_login_unico, id_usuario, dth_atualizacao, cpf, email
-              ) VALUES (
-                $seqUserLogin, $seqUsuario, '".$updateDate."', '".$txtCpf."', '".$txtEmail."'
-              )"
-                );
+              //       BancoSEI::getInstance()->executarSql(
+              //       "INSERT INTO usuario_login_unico (
+              //   id_usuario_login_unico, id_usuario, dth_atualizacao, cpf, email
+              // ) VALUES (
+              //   $seqUserLogin, $seqUsuario, '".$updateDate."', '".$txtCpf."', '".$txtEmail."'
+              // )"
+              //   );
+
+
+                $objLoginUnicoDTO=new LoginUnicoDTO();
+                $objLoginUnicoDTO->setNumIdLogin($seqUserLogin);
+                $objLoginUnicoDTO->setNumIdUsuario($seqUsuario);
+                $objLoginUnicoDTO->setDthDataAtualizacao($updateDate);
+                $objLoginUnicoDTO->setDblCpfContato($txtCpf);
+                $objLoginUnicoDTO->setStrEmail($txtEmail);
+
+                $objLoginUnicoBD = new LoginUnicoBD(BancoSEI::getInstance());
+                $objLoginUnicoBD->cadastrar($objLoginUnicoDTO);
+
+
+
     
                     BancoSEI::getInstance()->confirmarTransacao();
                     BancoSEI::getInstance()->fecharConexao();
@@ -205,9 +264,14 @@ try {
                   $objEmailDTO->setStrMensagem($strConteudo);
 
                   EmailRN::processar(array($objEmailDTO));
+                  
+                if ($sinSelo == 'N') {
+                  PaginaSEIExterna::getInstance()->adicionarMensagem(_('IMPORTANTE: As instruções para ativar o seu cadastro foram encaminhadas para o seu e-mail.'));
                 }
+              }
 
                 header('Location: ' . SessaoSEIExterna::getInstance()->assinarLink($action.'&id_orgao_acesso_externo='.$_GET['id_orgao_acesso_externo']));
+                die;
             }
         }
 
@@ -238,9 +302,9 @@ PaginaSEIExterna::getInstance()->abrirHead();
 PaginaSEIExterna::getInstance()->montarMeta();
 PaginaSEIExterna::getInstance()->montarTitle(PaginaSEIExterna::getInstance()->getStrNomeSistema().' - '.$strTitulo);
 PaginaSEIExterna::getInstance()->montarStyle();
-PaginaSEIExterna::getInstance()->adicionarStyle('modulos/loginunico/css/style.css');
+PaginaSEIExterna::getInstance()->adicionarStyle('modulos/'. NOME_MODULO_LOGIN_UNICO. '/css/style.css');
 PaginaSEIExterna::getInstance()->montarJavaScript();
-PaginaSEIExterna::getInstance()->adicionarJavaScript('modulos/loginunico/js/jquery.mask.js');
+PaginaSEIExterna::getInstance()->adicionarJavaScript('modulos/'. NOME_MODULO_LOGIN_UNICO . '/js/jquery.mask.js');
 PaginaSEIExterna::getInstance()->abrirJavaScript();
 ?>
 

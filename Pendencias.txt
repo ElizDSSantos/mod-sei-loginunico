@@ -2,6 +2,7 @@ Melhorias
 
 CADE
 
+-Avaliar o uso no caso de multiorgão
 -Buscar as dependências do composer e criar realease já compiladas
 -As tabelas do Banco de Dados não seguem padrões do SEI (md-loginunico-XXX)
 -Execução de sql diretamente em diversos locais, ao invez de usar framework do Sei.
@@ -12,6 +13,9 @@ CADE
 -Avaliar necessidade do método de obterFoto
 -Testar os métodos de interface com serviços da Receita Federal
 -Testes gerais nas funcionalidades e fluxos
+-Adicionar regras de deleção em cascata.
+-Adicionar regras de UNIQUE no LoginUnicoDTO
+-Caso estiver pendente continuar mostrando alert de enviar email 
 
 TRF4
  
@@ -27,6 +31,3 @@ Pontos de extensão
 
 
 
-
-   
- 

@@ -4,7 +4,7 @@ require_once dirname(__FILE__).'/../../../SEI.php';
 
 
 
-class MdLoginUnicoRN extends InfraRN {
+class MdLoginUnicoInstalacaoRN extends InfraRN {
 
     private $numSeg = 0;
     private $versaoAtualDesteModulo = '1.0.0';
@@ -143,7 +143,7 @@ class MdLoginUnicoRN extends InfraRN {
 
         if(InfraString::isBolVazia($strVersaoModuloAnterior)){
 
-            BancoSEI::getInstance()->executarSql("CREATE TABLE IF NOT EXISTS usuario_login_unico (
+            BancoSEI::getInstance()->executarSql("CREATE TABLE usuario_login_unico (
                 id_usuario_login_unico " . $objInfraMetaBD->tipoNumero() . " NOT NULL,
                 id_usuario " . $objInfraMetaBD->tipoNumero() . " NOT NULL,
                 cpf " . $objInfraMetaBD->tipoNumeroGrande() . " NOT NULL,
@@ -154,7 +154,6 @@ class MdLoginUnicoRN extends InfraRN {
             $objInfraMetaBD->adicionarChaveEstrangeira('fk_usuario_login_unico','usuario_login_unico',array('id_usuario'),'usuario',array('id_usuario'));
 
 
-               //$ad= BancoSEI::getInstance()->consultarSql("(SELECT (MAX(id_email_sistema) + 1) as maximo FROM email_sistema)");
                $ad= $objInfraMetaBD->obterMaxIdTabela('email_sistema');
                $ad=$ad[0]['maximo']+1; 
                $descricao = 'Login Único - Usuário Habilitado';
@@ -184,15 +183,32 @@ class MdLoginUnicoRN extends InfraRN {
                 $ativo = 'S';
                 $modulo = 'MD_LOGINUNICO_CADASTRO_USUARIO';
 
-                BancoSEI::getInstance()->executarSql("INSERT INTO email_sistema (id_email_sistema, descricao, de, para, assunto, conteudo, sin_ativo, id_email_sistema_modulo)	
-                VALUES ('$ad','$descricao','$de','$para','$assunto','$conteudo','$ativo','$modulo')");
+                // BancoSEI::getInstance()->executarSql(
+                //     "INSERT INTO email_sistema (id_email_sistema, descricao, de,
+                //      para, assunto, conteudo, sin_ativo, id_email_sistema_modulo)	
+                // VALUES ('$ad','$descricao','$de','$para','$assunto','$conteudo','$ativo','$modulo')");
+
+
+
+                $objEmailSistemaDTO=new EmailSistemaDTO();
+                $objEmailSistemaDTO->setNumIdEmailSistema($ad);
+                $objEmailSistemaDTO->setStrDescricao($descricao);
+                $objEmailSistemaDTO->setStrDe($de);
+                $objEmailSistemaDTO->setStrPara($para);
+                $objEmailSistemaDTO->setStrAssunto($assunto);
+                $objEmailSistemaDTO->setStrConteudo($conteudo);
+                $objEmailSistemaDTO->setStrSinAtivo($ativo);
+                $objEmailSistemaDTO->setStrIdEmailSistemaModulo($modulo);
+
+                $objEmailSistemaBD = new EmailSistemaBD(BancoSEI::getInstance());
+                $objEmailSistemaBD->cadastrar($objEmailSistemaDTO);
 
 
             //Criacao de Sequencias
             if (BancoSEI::getInstance() instanceof InfraMySql){
                 BancoSEI::getInstance()->executarSql('create table IF NOT EXISTS  seq_usuario_login_unico (id bigint not null primary key AUTO_INCREMENT, campo char(1) null) AUTO_INCREMENT = 1');
             } else if (BancoSEI::getInstance() instanceof InfraSqlServer){
-                BancoSEI::getInstance()->executarSql('create table IF NOT EXISTS  seq_usuario_login_unico (id bigint identity(1,1), campo char(1) null)');
+                BancoSEI::getInstance()->executarSql('create table seq_usuario_login_unico (id bigint identity(1,1), campo char(1) null)');
             } else if (BancoSEI::getInstance() instanceof InfraOracle){
                 BancoSEI::getInstance()->criarSequencialNativa('seq_usuario_login_unico', 1);
             }

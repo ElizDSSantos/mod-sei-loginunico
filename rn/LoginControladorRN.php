@@ -16,6 +16,11 @@ final class LoginControladorRN extends InfraRN
     private $scope;
     private $url_servico;
     private $id_orgao;
+    private $niveis_confiabilidade;
+    private $url_revalidacao;
+    private $client_id_validacao;
+    private $secret_validacao;
+    private $nivel_minimo_confiabilidade;
 
     protected function inicializarObjInfraIBanco()
     {
@@ -36,6 +41,7 @@ final class LoginControladorRN extends InfraRN
         $this->id_orgao              =  $conf->getArrConfiguracoes()['LoginUnico']['orgao'];
         $this->client_id_validacao   =  $conf->getArrConfiguracoes()['LoginUnico']['client_id_validacao'];
         $this->secret_validacao      =  $conf->getArrConfiguracoes()['LoginUnico']['secret_validacao'];
+        $this->nivel_minimo_confiabilidade = 1;
     }
 
      /**
@@ -326,7 +332,7 @@ final class LoginControladorRN extends InfraRN
                 }
                 
             } catch (Exception $e) {
-                throw new InfraException("Erro ao autenticar pelo GovBr", $e);
+                throw new InfraException("Erro ao autenticar pelo Acesso.gov.br", $e);
             }
         } else {
             $getDadosUser = $this->pesquisarUsuario(SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN'));
@@ -350,10 +356,10 @@ final class LoginControladorRN extends InfraRN
       * @param string $status
       * @return void
       */
-    private function getDestination($atualizar, $status)
+      private function getDestination($atualizar, $sinAtivo, $staTipo)
     {
         if (!$atualizar) {
-            if ($status == 'N') {
+            if ($sinAtivo == 'N' || $staTipo != UsuarioRN::$TU_EXTERNO) {
                 return array('action' => '../../controlador_externo.php?acao=usuario_externo_sair', 'erro' => true);
             }
             return array('action' => '../../controlador_externo.php?acao=usuario_externo_controle_acessos', 'erro' => false);
@@ -399,7 +405,7 @@ final class LoginControladorRN extends InfraRN
 
             AuditoriaSEI::getInstance()->auditar('usuario_externo_logar', __METHOD__, $objUsuarioDTOAuditoria);
 
-            $dest = $this->getDestination($atualizar, $user->getStrSinAtivo());
+            $dest = $this->getDestination($atualizar, $user->getStrSinAtivo(), $user->getStrStaTipo());
             $action = $dest['action'];
             $erro = $dest['erro'];
             
@@ -432,7 +438,7 @@ final class LoginControladorRN extends InfraRN
     {
         foreach ($niveis as $nivelUser) {
             //if (in_array($selosUser['nivel'], $this->selo_confianca)) {
-            if (in_array($nivelUser['id'], $this->niveis_confiabilidade)) {
+            if (in_array($nivelUser['id'], $this->niveis_confiabilidade) && $nivelUser['id']<>$this->nivel_minimo_confiabilidade ) {
                 return true;
             }
         }
@@ -540,7 +546,12 @@ final class LoginControladorRN extends InfraRN
             'Authorization: Bearer '. $access_token
         );
         curl_setopt($ch_confiabilidade, CURLOPT_HTTPHEADER, $headers);
-        $json_output_confiabilidade = json_decode(curl_exec($ch_confiabilidade), true);
+        $retorno = curl_exec($ch_confiabilidade);
+        if($retorno === false){
+            throw new InfraException(curl_error($ch_confiabilidade));
+        }
+
+        $json_output_confiabilidade = json_decode($retorno, true);
         curl_close($ch_confiabilidade);
         return $json_output_confiabilidade;
     }
@@ -623,32 +634,70 @@ final class LoginControladorRN extends InfraRN
 
             $seqContato = $this->getObjInfraIBanco()->getValorSequencia('seq_contato');
             $sinAtivo = $sinNivel ? 'S' : 'N';
-            $data_cadastro = date('Y-m-d H:i:s');
+            // $data_cadastro = date('Y-m-d H:i:s');
+            $data_cadastro = InfraData::getStrDataHoraAtual();
 
-            BancoSEI::getInstance()->executarSql(
-                "INSERT INTO contato (
-                    id_contato, nome, cpf, email, sin_ativo, sigla, sta_natureza,
-                    telefone_celular, id_contato_associado, id_tipo_contato, 
-                    sin_endereco_associado, dth_cadastro
-                    ) VALUES (
-                        $seqContato, '".utf8_decode($token['name'])."', '".$token['sub']."',
-                        '".$token['email']."', '".$sinAtivo."', '".$token['email']."',
-                        'F', '".$token['phone_number']."', 1, 3, 'N', '".$data_cadastro."'
-                    )"
-            );
+            // BancoSEI::getInstance()->executarSql(
+            //     "INSERT INTO contato (
+            //         id_contato,nome,cpf,email,sin_ativo,sigla,sta_natureza,telefone_celular,
+            //          id_contato_associado, id_tipo_contato, sin_endereco_associado, dth_cadastro
+            //         ) VALUES (
+            //             $seqContato,'".utf8_decode($token['name'])."', '".$token['sub']."',
+            //             '".$token['email']."','".$sinAtivo."', '".$token['email']."',
+            //             'F','".$token['phone_number']."', 1, 3, 'N','".$data_cadastro."'
+            //         )"
+            // );
+
+            $objContatoDTO=new ContatoDTO();
+            $objContatoDTO->setNumIdContato($seqContato);
+            $objContatoDTO->setStrNome(utf8_decode($token['name']));
+            $objContatoDTO->setDblCpf($token['sub']);
+            $objContatoDTO->setStrEmail($token['email']);
+            $objContatoDTO->setStrSinAtivo($sinAtivo);
+            $objContatoDTO->setStrSigla($token['email']);
+            $objContatoDTO->setStrStaNatureza("F");
+            $objContatoDTO->setStrTelefoneCelular($token['phone_number']);
+            $objContatoDTO->setNumIdContatoAssociado(1);
+            $objContatoDTO->setNumIdTipoContato(3);
+            $objContatoDTO->setStrSinEnderecoAssociado("N");
+            $objContatoDTO->setDthCadastro($data_cadastro);
+           
+            $objContatoBD = new ContatoBD(BancoSEI::getInstance());
+            $objContatoBD->cadastrar($objContatoDTO);
+
+
 
             $objInfraSequencia = new InfraSequencia(BancoSEI::getInstance());
             $seqUsuario = $objInfraSequencia->obterProximaSequencia('usuario_sistema');
 
-            BancoSEI::getInstance()->executarSql(
-                "INSERT INTO usuario (
-                    id_usuario, sin_ativo, sigla, nome,	id_contato,	id_orgao,
-                    sta_tipo, sin_acessibilidade
-                    ) VALUES (
-                        $seqUsuario,  '".$sinAtivo."', '".$token['email']."',
-                        '".utf8_decode($token['name'])."', $seqContato, 0, ".UsuarioRN::$TU_EXTERNO.", 'N'
-                    )"
-            );
+            // BancoSEI::getInstance()->executarSql(
+            //     "INSERT INTO usuario (
+            //         id_usuario, sin_ativo, sigla, nome,	id_contato,	id_orgao,
+            //         sta_tipo, sin_acessibilidade
+            //         ) VALUES (
+            //             $seqUsuario,  '".$sinAtivo."', '".$token['email']."',
+            //             '".utf8_decode($token['name'])."', $seqContato, 0, ".UsuarioRN::$TU_EXTERNO.", 'N'
+            //         )"
+            // );
+
+
+            $objUsuarioDTO=new UsuarioDTO();
+            $objUsuarioDTO->setNumIdUsuario($seqUsuario);
+            $objUsuarioDTO->setStrSinAtivo($sinAtivo);
+            $objUsuarioDTO->setStrSigla($token['email']);
+            $objUsuarioDTO->setStrNome(utf8_decode($token['name']));
+            $objUsuarioDTO->setNumIdContato($seqContato);
+            $objUsuarioDTO->setNumIdOrgao(0);
+            $objUsuarioDTO->setStrStaTipo(UsuarioRN::$TU_EXTERNO);
+            $objUsuarioDTO->setStrSinAcessibilidade("N");
+
+            $objUsuarioBD = new UsuarioBD(BancoSEI::getInstance());
+            $objUsuarioBD->cadastrar($objUsuarioDTO);
+
+
+
+
+
         } catch (Exception $e) {
                 
             throw new InfraException('Erro cadastrando usuário externo (LoginUnico).', $e);
@@ -664,7 +713,7 @@ final class LoginControladorRN extends InfraRN
      */
     private function pesquisarUserLoginUnico($cpf, $email){
         $objLoginUnicoDto = new LoginUnicoDTO();
-        $objLoginUnicoDto->setDblCpf($cpf);
+        $objLoginUnicoDto->setDblCpfContato($cpf);
         $objLoginUnicoDto->setStrEmail($email);
         $objLoginUnicoDto->retTodos(true);
         $loginBD  = new LoginUnicoBD($this->getObjInfraIBanco());
@@ -693,8 +742,7 @@ final class LoginControladorRN extends InfraRN
                 $usuarioDTO->retTodos(true);
         
                 $usuarioDB  = new UsuarioBD($this->getObjInfraIBanco());
-                $dados = $usuarioDB->listar($usuarioDTO);
-                $user = $dados[0];
+                $user = $usuarioDB->consultar($usuarioDTO);
                 $update = true;
             }
 

@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
-  <link href="modulos/loginunico/css/style.css" rel="stylesheet" type="text/css" media="screen" />
+  <link href="modulos/<?=NOME_MODULO_LOGIN_UNICO?>/css/style.css" rel="stylesheet" type="text/css" media="screen" />
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
   <meta name="robots" content="noindex" />
   <title>SEI - Termo de Aceitação</title>

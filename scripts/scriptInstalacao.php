@@ -7,7 +7,7 @@ try {
 	
 	SessaoSEI::getInstance(false);
 	
-	$objMdVersaoRN = new MdLoginUnicoRN();
+	$objMdVersaoRN = new MdLoginUnicoInstalacaoRN();
 	$objMdVersaoRN->atualizarVersao();
 	
 } catch(Exception $e) {

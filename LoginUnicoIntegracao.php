@@ -22,18 +22,24 @@ class LoginUnicoIntegracao extends SeiIntegracao
         return 'loginunico';
     }
 
+    public function inicializar($strVersaoSEI)
+    {
+        $strDirModulo = basename(dirname(__FILE__));
+        define('NOME_MODULO_LOGIN_UNICO', $strDirModulo);
+    }
+
     public function montarBotaoAutenticacaoExterna()
     {
         $controlador = new LoginControladorRN();
         if (SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN')) {
             session_destroy();
         }
-        PaginaSEIExterna::getInstance()->adicionarStyle('modulos/loginunico/css/style.css');
+         PaginaSEIExterna::getInstance()->adicionarStyle('modulos/'. NOME_MODULO_LOGIN_UNICO. '/css/style.css');
         $url = $controlador->gerarURL();
         //$html  = "<p class='separador'>-------------------- ou --------------------</p>";
         $html  = "<p class='separador'><strong>ou</strong></p>";
         $html .= "<a class='btGov' href='".$url."'>
-                    <span id='txtComplementarBtGov'>Acessar com </span><img src='modulos/loginunico/img/img_acesso.png' alt='' width='64' height='28'>
+                    <span id='txtComplementarBtGov'>Acessar com </span><img src='modulos/". NOME_MODULO_LOGIN_UNICO . "/img/img_acesso.png' alt='' width='64' height='28'>
                   </a>";
         return $html;
         //return null;
@@ -87,6 +93,40 @@ class LoginUnicoIntegracao extends SeiIntegracao
         $controlador = new LoginControladorRN();
         $controlador->autenticar($dados);
     }
+
+
+    public function excluirUsuario($arrObjUsuarioAPI)
+    {
+        if(!isset($arrObjUsuarioAPI)){
+            throw new InfraException("Usuários para deleção não podem ser nulos");
+        }
+
+        foreach($arrObjUsuarioAPI as $objUsuarioAPI){
+
+            $objLoginUnicoDTO=new LoginUnicoDTO();
+            $objLoginUnicoDTO->setNumIdUsuario($objUsuarioAPI->getIdUsuario());
+            $objLoginUnicoDTO->retNumIdUsuario();
+            $objLoginUnicoDTO->retNumIdLogin();
+
+            $objLoginUnicoBD= new LoginUnicoBD(BancoSEI::getInstance());
+
+            $arrLoginUnicoDTO=$objLoginUnicoBD->listar($objLoginUnicoDTO);
+            
+            if(!empty($arrLoginUnicoDTO)){
+
+                foreach($arrLoginUnicoDTO as $objLoginUnicoDTO){
+
+                    $objLoginUnicoBD->excluir($objLoginUnicoDTO);
+                }
+
+            }
+
+        }
+
+    }
+
+
+
 
     public function processarControladorExterno($strAcao)
     {

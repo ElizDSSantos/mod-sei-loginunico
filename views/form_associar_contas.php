@@ -25,9 +25,9 @@ try {
     PaginaSEIExterna::getInstance()->montarMeta();
     PaginaSEIExterna::getInstance()->montarTitle(PaginaSEIExterna::getInstance()->getStrNomeSistema().' - '.$strTitulo);
     PaginaSEIExterna::getInstance()->montarStyle();
-    PaginaSEIExterna::getInstance()->adicionarStyle('modulos/loginunico/css/style.css');
+    PaginaSEIExterna::getInstance()->adicionarStyle('modulos/'. NOME_MODULO_LOGIN_UNICO. '/css/style.css');
     PaginaSEIExterna::getInstance()->montarJavaScript();
-    PaginaSEIExterna::getInstance()->adicionarJavaScript('modulos/loginunico/js/jquery.mask.js');
+    PaginaSEIExterna::getInstance()->adicionarJavaScript('modulos/' . NOME_MODULO_LOGIN_UNICO . '/js/jquery.mask.js');
     PaginaSEIExterna::getInstance()->abrirJavaScript();
 ?>
 function verificaDadosUsuario(){
