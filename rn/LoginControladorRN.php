@@ -438,7 +438,7 @@ final class LoginControladorRN extends InfraRN
     {
         foreach ($niveis as $nivelUser) {
             //if (in_array($selosUser['nivel'], $this->selo_confianca)) {
-            if (in_array($nivelUser['id'], $this->niveis_confiabilidade) && $nivelUser['id']<>$this->nivel_minimo_confiabilidade ) {
+            if (in_array($nivelUser['id'], $this->niveis_confiabilidade) && $nivelUser['id']>$this->nivel_minimo_confiabilidade ) {
                 return true;
             }
         }
@@ -634,19 +634,9 @@ final class LoginControladorRN extends InfraRN
 
             $seqContato = $this->getObjInfraIBanco()->getValorSequencia('seq_contato');
             $sinAtivo = $sinNivel ? 'S' : 'N';
-            // $data_cadastro = date('Y-m-d H:i:s');
+            
             $data_cadastro = InfraData::getStrDataHoraAtual();
 
-            // BancoSEI::getInstance()->executarSql(
-            //     "INSERT INTO contato (
-            //         id_contato,nome,cpf,email,sin_ativo,sigla,sta_natureza,telefone_celular,
-            //          id_contato_associado, id_tipo_contato, sin_endereco_associado, dth_cadastro
-            //         ) VALUES (
-            //             $seqContato,'".utf8_decode($token['name'])."', '".$token['sub']."',
-            //             '".$token['email']."','".$sinAtivo."', '".$token['email']."',
-            //             'F','".$token['phone_number']."', 1, 3, 'N','".$data_cadastro."'
-            //         )"
-            // );
 
             $objContatoDTO=new ContatoDTO();
             $objContatoDTO->setNumIdContato($seqContato);
@@ -670,15 +660,7 @@ final class LoginControladorRN extends InfraRN
             $objInfraSequencia = new InfraSequencia(BancoSEI::getInstance());
             $seqUsuario = $objInfraSequencia->obterProximaSequencia('usuario_sistema');
 
-            // BancoSEI::getInstance()->executarSql(
-            //     "INSERT INTO usuario (
-            //         id_usuario, sin_ativo, sigla, nome,	id_contato,	id_orgao,
-            //         sta_tipo, sin_acessibilidade
-            //         ) VALUES (
-            //             $seqUsuario,  '".$sinAtivo."', '".$token['email']."',
-            //             '".utf8_decode($token['name'])."', $seqContato, 0, ".UsuarioRN::$TU_EXTERNO.", 'N'
-            //         )"
-            // );
+           
 
 
             $objUsuarioDTO=new UsuarioDTO();

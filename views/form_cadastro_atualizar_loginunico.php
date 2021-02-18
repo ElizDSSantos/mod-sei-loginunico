@@ -90,27 +90,7 @@ try {
                     $idContato = SessaoSEIExterna::getInstance()->getAtributo('ID_CONTATO_USUARIO_EXTERNO');
                     $staTipoUsuarioExterno = ($sinSelo == 'S') ? UsuarioRN::$TU_EXTERNO : UsuarioRN::$TU_EXTERNO_PENDENTE;
 
-                    // BancoSEI::getInstance()->executarSql(
-                    // "UPDATE contato 
-                    //     set nome = \"$txtNome\", 
-                    //     cpf = \"$txtCpf\", 
-                    //     rg = \"$txtRg\", 
-                    //     orgao_expedidor = \"$txtExpedidor\", 
-                    //     telefone_fixo = \"$txtTelefoneFixo\", 
-                    //     telefone_celular = \"$txtTelefoneCelular\", 
-                    //     endereco = \"$txtEndereco\", 
-                    //     complemento = \"$txtComplemento\", 
-                    //     bairro = \"$txtBairro\",
-                    //     id_pais = $selPais, 
-                    //     id_uf = $selUf, 
-                    //     id_cidade = $selCidade, 
-                    //     cep = \"$txtCep\", 
-                    //     email = \"$txtEmail\", 
-                    //     sigla = \"$txtEmail\",
-                    //     sin_ativo = \"$sinSelo\",
-                    //     id_contato_associado = $idContato
-                    // WHERE id_contato = $idContato"
-                    // );
+                    
 
 
                     $objContatoDTO=new ContatoDTO();
@@ -137,16 +117,7 @@ try {
                     $objContatoBD->alterar($objContatoDTO);
                     
 
-                //     BancoSEI::getInstance()->executarSql(
-                //     "UPDATE usuario
-                //         set sigla = \"$txtEmail\", 
-                //         nome = \"$txtNome\", 
-                //         idx_usuario = \"$idx\",
-                //         sin_ativo = \"S\",
-                //         sta_tipo = \"$staTipoUsuarioExterno\",
-                //         senha = null
-                //     WHERE id_usuario = ". SessaoSEIExterna::getInstance()->getAtributo('ID_USUARIO_EXTERNO')
-                // );
+               
 
                 $objUsuarioDTO=new UsuarioDTO();
                 $objUsuarioDTO->setStrSigla($txtEmail);
@@ -165,16 +136,10 @@ try {
 
                     $seqUserLogin = SessaoSEIExterna::getInstance()->getAtributo('ID_USUARIO_LOGIN');
                     $seqUsuario = SessaoSEIExterna::getInstance()->getAtributo('ID_USUARIO_EXTERNO');
-                    // $updateDate = date('Y-m-d H:i:s');
+                    
                     $updateDate = InfraData::getStrDataHoraAtual();
 
-              //       BancoSEI::getInstance()->executarSql(
-              //       "INSERT INTO usuario_login_unico (
-              //   id_usuario_login_unico, id_usuario, dth_atualizacao, cpf, email
-              // ) VALUES (
-              //   $seqUserLogin, $seqUsuario, '".$updateDate."', '".$txtCpf."', '".$txtEmail."'
-              // )"
-              //   );
+             
 
 
                 $objLoginUnicoDTO=new LoginUnicoDTO();

@@ -6,6 +6,8 @@ CADE
 -Buscar as dependências do composer e criar realease já compiladas
 -As tabelas do Banco de Dados não seguem padrões do SEI (md-loginunico-XXX)
 -Execução de sql diretamente em diversos locais, ao invez de usar framework do Sei.
+-Avaliar as alterações que fizemos ao utilizar o framework nativo do sei nas consultas SQL:
+    -LoginControladorRN e form_cadastro_atualizar_loginunico
 -Verificar no modulo login unico se a versao do sei eh compativel (4^)
 -Avaliar a utilidade do form_termo_aceitação
 -No form_cadastro_atualizar_loginunico estão abrindo transacao, deveria ser um método Controlado na pasta RN

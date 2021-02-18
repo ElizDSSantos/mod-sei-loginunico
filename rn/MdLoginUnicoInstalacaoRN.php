@@ -183,11 +183,7 @@ class MdLoginUnicoInstalacaoRN extends InfraRN {
                 $ativo = 'S';
                 $modulo = 'MD_LOGINUNICO_CADASTRO_USUARIO';
 
-                // BancoSEI::getInstance()->executarSql(
-                //     "INSERT INTO email_sistema (id_email_sistema, descricao, de,
-                //      para, assunto, conteudo, sin_ativo, id_email_sistema_modulo)	
-                // VALUES ('$ad','$descricao','$de','$para','$assunto','$conteudo','$ativo','$modulo')");
-
+             
 
 
                 $objEmailSistemaDTO=new EmailSistemaDTO();
