@@ -81,7 +81,13 @@ class LoginUnicoIntegracao extends SeiIntegracao
 
     public function validarSeLoginExterno(){
 
-        return true;
+        if(SessaoSEIExterna::getInstance()->getAtributo('LOGIN_GOV_BR')){
+            return true;
+        }
+        
+        return false;
+        
+
     }
 
     /**
