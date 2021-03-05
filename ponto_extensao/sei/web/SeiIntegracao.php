@@ -100,8 +100,9 @@ abstract class SeiIntegracao {
   public function alterarPublicacao(PublicacaoAPI $objPublicacaoAPI){return null;}
   public function cancelarAgendamentoPublicacao(PublicacaoAPI $objPublicacaoAPI){return null;}
   public function montarBotaoAutenticacaoExterna(){return null;}
-  public function validarSenhaExterna(LoginExternoAPI $objLoginExternoAPI){return null;}
+  public function validarSenhaUsuarioExterno(UsuarioExternoAPI $objUsuarioExternoAPI){return null;}
   public function validarSeLoginExterno(){return null;}
+  public function montarBotaoAssinaturaExterna($idDocumento,$IdAcessoExterno){return null;}
 
 
   public function executar($func, ...$params) {

@@ -2756,11 +2756,11 @@ class DocumentoRN extends InfraRN {
         }else{
           // alteracoes Login Unico
           $bolLoginExterno = false;
-          $objLoginExternoAPI = new LoginExternoAPI();
-          $objLoginExternoAPI->setUsuario($objUsuarioDTO->getStrSigla());
-          $objLoginExternoAPI->setSenha($objAssinaturaDTO->getStrSenhaUsuario());
+          $objUsuarioExternoAPI = new UsuarioExternoAPI();
+          $objUsuarioExternoAPI->setUsuario($objUsuarioDTO->getStrSigla());
+          $objUsuarioExternoAPI->setSenha($objAssinaturaDTO->getStrSenhaUsuario());
             foreach ($SEI_MODULOS as $seiModulo) {
-              if (($bolAutenticacaoModulo = $seiModulo->executar('validarSenhaExterna', $objLoginExternoAPI)) === true){
+              if (($bolAutenticacaoModulo = $seiModulo->executar('validarSenhaUsuarioExterno', $objUsuarioExternoAPI)) === true){
               $bolLoginExterno = true;
               break;
               }

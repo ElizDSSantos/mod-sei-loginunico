@@ -6,7 +6,7 @@
  *
  */
 
-class LoginExternoAPI {
+class UsuarioExternoAPI {
   private $senha;
   private $usuario;
   

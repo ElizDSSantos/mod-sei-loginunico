@@ -45,29 +45,28 @@ class LoginUnicoIntegracao extends SeiIntegracao
         //return null;
     }
 
-    public function montarBotaoAssinaturaExterna()
+    public function montarBotaoAssinaturaExterna($idDocumento,$IdAcessoExterno)
     {
         $bolLoginGovBr = SessaoSEIExterna::getInstance()->getAtributo('LOGIN_GOV_BR');
 
         if ($bolLoginGovBr) {
 
             $dados = [
-                'id_documento' => $_GET['id_documento'],
+                'id_documento' => $idDocumento,
                 'id_orgao_acesso_externo' => $_GET['id_orgao_acesso_externo'],
-                'id_acesso_externo' => $_GET['id_acesso_externo'],
+                'id_acesso_externo' => $IdAcessoExterno,
             ];
             SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_DADOS_DOC', $dados);
             $controlador = new LoginControladorRN();
             $url = $controlador->gerarURL(true);
-            echo "<script>
-            window.resizeTo(500, 800);
-            window.location.href = '$url';
-            </script>";
+            $btnAssinatura='<a href="javascript:void(0);" onclick="infraAbrirJanela(\' ' . $url . '\',\'AssinaturaExterna\',500,800);" tabindex="'.PaginaSEIExterna::getInstance()->getProxTabTabela().'"><img src="imagens/sei_assinar_pequeno.gif" title="Assinar Documento" alt="Assinar Documento" class="infraImg" /></a>&nbsp;';
+            return $btnAssinatura;
         }
+        return null;
     }
 
 
-    public function validarSenhaExterna(LoginExternoAPI $objLoginExternoAPI)
+    public function validarSenhaUsuarioExterno(UsuarioExternoAPI $objUsuarioExternoAPI)
     {
         $controlador = new LoginControladorRN();
         $validacao = $controlador->validarTokenAssinatura($_GET);
