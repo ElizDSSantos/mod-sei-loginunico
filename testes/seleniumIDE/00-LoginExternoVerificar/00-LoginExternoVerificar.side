@@ -1,0 +1,180 @@
+{
+  "id": "be677e0e-b8e1-438f-b6a2-e001cd16a136",
+  "version": "2.0",
+  "name": "00-LoginExternoVerificar",
+  "url": "http://sei.loginunico.nuvem.gov.br",
+  "tests": [{
+    "id": "ea57efe0-2451-4ef4-b556-268e744f6dfb",
+    "name": "00-AbrirTelaExternaeLogar",
+    "commands": [{
+      "id": "a4aa6ada-0b52-43bd-b902-743d2579a8cf",
+      "comment": "",
+      "command": "open",
+      "target": "/sei/controlador_externo.php?acao=usuario_externo_logar&id_orgao_acesso_externo=0",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "e55f04ee-4306-404f-a156-ddfe22ca1fac",
+      "comment": "",
+      "command": "waitForElementVisible",
+      "target": "xpath=//strong[contains(.,'ou')]",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "9e478181-77bb-49fe-a030-ea11551bc3a8",
+      "comment": "",
+      "command": "verifyText",
+      "target": "xpath=//strong[contains(.,'ou')]",
+      "targets": [
+        ["css=strong", "css:finder"],
+        ["xpath=//div[@id='divUsuario']/p/strong", "xpath:idRelative"],
+        ["xpath=//strong", "xpath:position"],
+        ["xpath=//strong[contains(.,'ou')]", "xpath:innerText"]
+      ],
+      "value": "ou"
+    }, {
+      "id": "29df57cc-f4f6-482e-955e-878c1b163cd7",
+      "comment": "",
+      "command": "verifyText",
+      "target": "linkText=Acessar com",
+      "targets": [
+        ["linkText=Acessar com", "linkText"],
+        ["css=.btGov", "css:finder"],
+        ["xpath=//div[@id='divUsuario']/a[2]", "xpath:idRelative"],
+        ["xpath=//a[contains(@href, 'https://sso.staging.acesso.gov.br//authorize?response_type=code&client_id=sistemas/homologacao/sei/controlador_externo&scope=openid+email+phone+profile+govbr_empresa+govbr_confiabilidades&redirect_uri=http%3A%2F%2Fsei.loginunico.nuvem.gov.br%2Fsei%2Fmodulos%2Floginunico%2Fcontrolador_loginunico.php&state=d21d482769a327338b4c5f32&nonce=1084427a')]", "xpath:href"],
+        ["xpath=//a[2]", "xpath:position"],
+        ["xpath=//a[contains(.,'Acessar com ')]", "xpath:innerText"]
+      ],
+      "value": "Acessar com"
+    }, {
+      "id": "87378e51-ddbd-4e4e-832c-d0f23a8942f3",
+      "comment": "",
+      "command": "verifyElementPresent",
+      "target": "xpath=//span[@id='txtComplementarBtGov']",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "2f880e11-b773-44ba-bc7e-410cdc10fd36",
+    "name": "01-VerificarLogs",
+    "commands": [{
+      "id": "bd64ed32-3386-4bbb-86d4-d38f90d42b13",
+      "comment": "",
+      "command": "open",
+      "target": "/sip/login.php?sigla_orgao_sistema=ME&sigla_sistema=SEI",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "b6f57d86-a311-4360-9783-590af5caefb2",
+      "comment": "",
+      "command": "waitForElementVisible",
+      "target": "id=sbmLogin",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "e81d17c7-2fe2-4f3f-9156-2342808b5196",
+      "comment": "",
+      "command": "type",
+      "target": "id=txtUsuario",
+      "targets": [
+        ["id=txtUsuario", "id"],
+        ["name=txtUsuario", "name"],
+        ["css=#txtUsuario", "css:finder"],
+        ["xpath=//input[@id='txtUsuario']", "xpath:attributes"],
+        ["xpath=//div[@id='divUsuario']/input", "xpath:idRelative"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "teste"
+    }, {
+      "id": "df42becc-55ad-4c80-8e43-46be1605409f",
+      "comment": "",
+      "command": "type",
+      "target": "id=pwdSenha",
+      "targets": [
+        ["id=pwdSenha", "id"],
+        ["name=pwdSenha", "name"],
+        ["css=#pwdSenha", "css:finder"],
+        ["xpath=//input[@id='pwdSenha']", "xpath:attributes"],
+        ["xpath=//div[@id='divUsuario']/input[2]", "xpath:idRelative"],
+        ["xpath=//input[2]", "xpath:position"]
+      ],
+      "value": "teste"
+    }, {
+      "id": "a61c26d4-7a48-4026-a6c7-155168932969",
+      "comment": "",
+      "command": "click",
+      "target": "id=sbmLogin",
+      "targets": [
+        ["id=sbmLogin", "id"],
+        ["name=sbmLogin", "name"],
+        ["css=#sbmLogin", "css:finder"],
+        ["xpath=//button[@id='sbmLogin']", "xpath:attributes"],
+        ["xpath=//div[@id='divBotoes']/button", "xpath:idRelative"],
+        ["xpath=//button", "xpath:position"],
+        ["xpath=//button[contains(.,'Acessar')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "e101cd80-a356-44e7-a90a-798d137bcd3f",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//a[contains(.,'Infra')]",
+      "targets": [
+        ["linkText=Log", "linkText"],
+        ["css=li:nth-child(24) li:nth-child(7) > a", "css:finder"],
+        ["xpath=//a[contains(text(),'Log')]", "xpath:link"],
+        ["xpath=//ul[@id='main-menu']/li[24]/ul/li[7]/a", "xpath:idRelative"],
+        ["xpath=//a[contains(@href, 'controlador.php?acao=infra_log_listar&infra_sistema=100000100&infra_unidade_atual=110000001&infra_hash=7cbe413104a1c90bdd80e18e35cefa8d72d4a541ce61e23b182a382bc01775c4')]", "xpath:href"],
+        ["xpath=//li[24]/ul/li[7]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Log')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "6b022b6a-a560-4e91-90e0-1793efbc68d1",
+      "comment": "",
+      "command": "waitForElementVisible",
+      "target": "linkText=Log",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "5e5ee78f-6b06-4099-afdc-275066b18928",
+      "comment": "",
+      "command": "click",
+      "target": "linkText=Log",
+      "targets": [
+        ["linkText=Log", "linkText"],
+        ["css=li:nth-child(24) li:nth-child(7) > a", "css:finder"],
+        ["xpath=//a[contains(text(),'Log')]", "xpath:link"],
+        ["xpath=//ul[@id='main-menu']/li[24]/ul/li[7]/a", "xpath:idRelative"],
+        ["xpath=//a[contains(@href, 'controlador.php?acao=infra_log_listar&infra_sistema=100000100&infra_unidade_atual=110000001&infra_hash=7cbe413104a1c90bdd80e18e35cefa8d72d4a541ce61e23b182a382bc01775c4')]", "xpath:href"],
+        ["xpath=//li[24]/ul/li[7]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Log')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "93c106c8-bff5-4c1e-9a2c-c7e33b0a7d90",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//td[contains(.,'FIM')]",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "4e915ae1-4680-4357-acf1-71a4ef542882",
+      "comment": "",
+      "command": "verifyElementPresent",
+      "target": "xpath=//td[contains(.,'FIM')]",
+      "targets": [],
+      "value": ""
+    }]
+  }],
+  "suites": [{
+    "id": "f6283737-c35e-4e75-8571-13c7faeeb7fe",
+    "name": "00-LoginExternoVerificar",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": ["ea57efe0-2451-4ef4-b556-268e744f6dfb", "2f880e11-b773-44ba-bc7e-410cdc10fd36"]
+  }],
+  "urls": ["http://sei.loginunico.nuvem.gov.br/"],
+  "plugins": []
+}

@@ -26,7 +26,7 @@ class LoginUnicoDTO extends InfraDTO{
 
       $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_NUM, 'IdLogin', 'id_usuario_login_unico');
       $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_NUM, 'IdUsuario', 'id_usuario');
-      $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_DBL, 'Cpf', 'cpf');
+      $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_DBL, 'CpfContato', 'cpf');
       $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_DTH, 'DataAtualizacao', 'dth_atualizacao');
       $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_STR, 'Email', 'email');
 
@@ -37,6 +37,7 @@ class LoginUnicoDTO extends InfraDTO{
       $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_STR,'DescricaoOrgao','o.descricao','orgao o');
       $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_NUM,'IdContato','a.id_contato','usuario a');
       $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_STR,'SinAtivo','a.sin_ativo','usuario a');
+      $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_STR,'StaTipo','a.sta_tipo','usuario a');
       $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_STR,'TelefoneFixoContato','c.telefone_fixo','contato c');
       $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_STR,'TelefoneCelularContato','c.telefone_celular','contato c');
       $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_NUM,'IdUfContato','c.id_uf','contato c');
