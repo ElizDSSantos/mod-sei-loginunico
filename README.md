@@ -120,7 +120,3 @@ $ php -c /etc/php.ini <DIRETÓRIO RAIZ DE INSTALAÇÃO DO SEI E SIP>/sei/web/mod
 ```
 
 
-
-### 1.6. Temporário até versão 4 do SEI
-
-Substituir os arquivos presentes na pasta "Ponto de Extensão" em sua instalação do SEI.

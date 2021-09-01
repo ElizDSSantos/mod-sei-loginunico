@@ -2,7 +2,7 @@
 try {
     require_once dirname(__FILE__).'/../../SEI.php';
     session_start();
-
+    
     switch($_GET['acao']) {
     case 'usuario_loginunico_atualizar':
     case 'usuario_externo_enviar_cadastro':
@@ -15,11 +15,17 @@ try {
     default:
         $controlador = new LoginControladorRN();
         if(isset($_GET['code']) && isset($_GET['state'])){
-            $codigoRevalidacao=SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_STATE_REVALIDACAO');
+            
+            $operacao=$controlador->retornaOperacaoLoginUnico($_GET['state']);
+  
                         
-            if($_GET['state']==$codigoRevalidacao){
-                SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_STATE_REVALIDACAO',null);
-                $controlador->assinarLoginUnico();
+            if($operacao=='revalidacao'){
+                $controlador->assinaturaLoginUnico("externo");
+                return;
+            } 
+
+            if($operacao=='assinaturaInterna'){
+                $controlador->assinaturaLoginUnico("interno");
                 return;
             } 
 

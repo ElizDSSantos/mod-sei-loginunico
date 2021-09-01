@@ -15,7 +15,7 @@ try {
     $user = $objLoginUnico->pesquisarUsuario($token)['user'];
     $dadosReceita =  SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN_ENDERECO');
    
-    $tel = $user->getStrTelefoneFixoContato();
+    $tel = $user->getStrTelefoneResidencialContato();
     $cel = $user->getStrTelefoneCelularContato();
     $readCel = '';
     $readTel = '';
@@ -98,7 +98,7 @@ try {
                     $objContatoDTO->setDblCpf($txtCpf);
                     $objContatoDTO->setDblRg($txtRg);
                     $objContatoDTO->setStrOrgaoExpedidor($txtExpedidor);
-                    $objContatoDTO->setStrTelefoneFixo($txtTelefoneFixo);
+                    $objContatoDTO->setStrTelefoneResidencial($txtTelefoneFixo);
                     $objContatoDTO->setStrTelefoneCelular($txtTelefoneCelular);
                     $objContatoDTO->setStrEndereco($txtEndereco);
                     $objContatoDTO->setStrComplemento($txtComplemento);
@@ -109,6 +109,7 @@ try {
                     $objContatoDTO->setStrCep($txtCep);
                     $objContatoDTO->setStrEmail($txtEmail);
                     $objContatoDTO->setStrSigla($txtEmail);
+                    $objContatoDTO->setStrNomeRegistroCivil($txtNome);
                     $objContatoDTO->setStrSinAtivo($sinSelo);
                     $objContatoDTO->setNumIdContatoAssociado($idContato);
                     $objContatoDTO->setNumIdContato($idContato);
@@ -123,9 +124,11 @@ try {
                 $objUsuarioDTO->setStrSigla($txtEmail);
                 $objUsuarioDTO->setStrNome($txtNome);
                 $objUsuarioDTO->setStrIdxUsuario($idx);
+                $objUsuarioDTO->setStrNomeRegistroCivil($txtNome);
                 $objUsuarioDTO->setStrSinAtivo("S");
                 $objUsuarioDTO->setStrStaTipo($staTipoUsuarioExterno);
-                $objUsuarioDTO->setStrSenha(null);
+                //$objUsuarioDTO->setStrSenha(null);
+
                 $objUsuarioDTO->setNumIdUsuario(SessaoSEIExterna::getInstance()->getAtributo('ID_USUARIO_EXTERNO'));
 
                 $objUsuarioBD = new UsuarioBD(BancoSEI::getInstance());
@@ -588,12 +591,12 @@ echo $strDivIdioma;
 
   <div class="row-externo mb-1">
     <div class="coluna-externo-md">
-      <label id="lblCpf" for="txtCpf" accesskey="" class="infraLabelObrigatorio"><?=_("CPF:")?></label>
+      <div><label id="lblCpf" for="txtCpf" accesskey="" class="infraLabelObrigatorio"><?=_("CPF:")?></label></div>
       <input type="text" id="txtCpf" name="txtCpf" onkeypress="return infraMascaraCpf(this,event);" maxlength="15" class="infraText" value="<?=InfraUtil::formatarCpf($token['sub'])?>" tabindex="<?=PaginaSEIExterna::getInstance()->getProxTabDados()?>" readonly />
     </div>
 
     <div class="coluna-externo-md">
-      <label id="lblRg" for="txtRg" accesskey="" class="infraLabelObrigatorio"><?=_("RG:")?></label>
+      <div><label id="lblRg" for="txtRg" accesskey="" class="infraLabelObrigatorio"><?=_("RG:")?></label></div>
       <input type="text" id="txtRg" name="txtRg" onkeypress="return infraMascaraNumero(this,event,15);" maxlength="15" class="infraText" value="<?= $user->getDblRgContato() ?>" tabindex="<?=PaginaSEIExterna::getInstance()->getProxTabDados()?>" />
     </div>
 
@@ -680,7 +683,7 @@ echo $strDivIdioma;
     </div>
 
     <div class="coluna-externo-md auxiliar">
-      <label id="lblCep" for="txtCep" accesskey="" class="infraLabelObrigatorio"><?=_("CEP:")?></label>
+      <div><label id="lblCep" for="txtCep" accesskey="" class="infraLabelObrigatorio"><?=_("CEP:")?></label></div>
       <input type="text" id="txtCep" name="txtCep"  maxlength="15" class="infraText" data-cep="<?= $dadosReceita['cep'] ?>" value="<?= $dadosReceita['cep'] ? $dadosReceita['cep'] : $user->getStrCepContato() ?>"  tabindex="<?=PaginaSEIExterna::getInstance()->getProxTabDados()?>" />
     </div>
   </div>
@@ -703,9 +706,9 @@ echo $strDivIdioma;
     </div>
   </div>
 
-  <div class="row-externo mb-1">
-    <button type="submit" accesskey="" id="sbmEnviar" class="infraButton bt" name="sbmEnviar" value="Enviar" title="Enviar" ><?=_("Enviar")?></button>
-    <button type="button" accesskey="" id="btnVoltar" name="btnVoltar" value="Voltar" onclick="location.href='<?=SessaoSEIExterna::getInstance()->assinarLink('controlador_externo.php?acao=usuario_externo_sair&acao_origem='.$_GET['acao'])?>';" class="infraButton bt"><?=_("Voltar")?></button>
+  <div class="row-externo mb-1 mt ml20">
+    <button type="submit" accesskey="" id="sbmEnviar" class="infraButton" name="sbmEnviar" value="Enviar" title="Enviar" ><?=_("Enviar")?></button>
+    <button type="button" accesskey="" id="btnVoltar" style='margin-left:10px' class="infraButton" name="btnVoltar" value="Voltar" onclick="location.href='<?=SessaoSEIExterna::getInstance()->assinarLink('controlador_externo.php?acao=usuario_externo_sair&acao_origem='.$_GET['acao'])?>';" class="infraButton bt"><?=_("Voltar")?></button>
   </div>
   
 </div>

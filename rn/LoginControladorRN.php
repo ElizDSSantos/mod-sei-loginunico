@@ -49,15 +49,14 @@ final class LoginControladorRN extends InfraRN
       *
       * @return void
       */
-    public function gerarURL($bolRevalidacao=false)
+    public function gerarURL($bolRevalidacao=false,$state=null)
     {
         $urlServico=$this->url_provider;
         $scope=$this->scope;
-        $state=$this->getRandomHex(12);
+        if($state==null)$state=$this->getRandomHex(12);
         
         $client_id=$this->client_id;
         if($bolRevalidacao){
-            SessaoSEIExterna::getInstance()->setAtributo('MD_LOGIN_UNICO_STATE_REVALIDACAO',$state);
             $urlServico=$this->url_revalidacao ;
             $scope="password-validation";
             $client_id=$this->client_id_validacao;
@@ -68,7 +67,7 @@ final class LoginControladorRN extends InfraRN
             ."&scope=".$scope
             ."&redirect_uri=".urlencode($this->redirect_uri)
             ."&state=".$state;
-        
+
 
         $uri.= $bolRevalidacao?"":"&nonce=".$this->getRandomHex();
             
@@ -81,7 +80,7 @@ final class LoginControladorRN extends InfraRN
       * @param integer $num_bytes
       * @return void
       */
-    private function getRandomHex($num_bytes=4)
+    public function getRandomHex($num_bytes=4)
     {
         return bin2hex(openssl_random_pseudo_bytes($num_bytes));
     }
@@ -166,7 +165,7 @@ final class LoginControladorRN extends InfraRN
                 window.opener.location.reload();
                 </script>";
                 throw new InfraException("Usuário tentando assinar é diferente do usuário logado, 
-                validacao=".$tokenRevalidacao['sub'] .", loginUnico=".$tokenLoginUnico['sub'] .
+                validacao=".$tokenRevalidacao['sub'] .", e os dados do govBR são loginUnico=".$tokenLoginUnico['sub'] .
                  ", nome=" . $tokenLoginUnico['name'] . ", email=" . $tokenLoginUnico['email'] );
                 
             }else{
@@ -177,100 +176,43 @@ final class LoginControladorRN extends InfraRN
 
         }catch(Exception $e){
             
-            throw new InfraException("Erro ao validar token de revalidação GovBr",$e);
+            throw new InfraException("Erro ao validar token de revalidação GovBr. Caso tenha logado pela senha interna do SEI, favor logar novamente pelo govbr",$e);
 
         }
 
         
     }
 
+    protected function validarTokenAssinaturaInternaControlado($dados){
 
-    /**
-     * Realiza a assinatura do documento usando a lógica do SEI
-     *
-     * @return void
-     */
-
-    protected function assinarLoginUnicoControlado(){
-
+        
         try{
+            $token=$this->revalidarAssinatura($dados["_GET"],false);
+            $cpfUsuarioSEI=$dados['usuario']->getDblCpfContato();
+            $timestamp=time();
+            if($timestamp >= $token){
+                throw new InfraException('Token do GovBR Expirado, execute a assinatura novamente');
+            }
+            if($token['sub'] != $cpfUsuarioSEI){
+                //SessaoSEI::getInstance()->removerDadosSessao();
+                echo "<script>
+                window.opener.location.reload();
+                </script>";
+                throw new InfraException("Usuário tentando assinar é diferente do usuário logado no govBR:
+                usuarioSEI=".$cpfUsuarioSEI ."e usuario do govBR =".$token['sub'] );
+                
+            }else{
+                SessaoSEI::getInstance()->validarAuditarPermissao('documento_assinar',__METHOD__,$token);
+                return true;
+            }
+         
 
-      $dados=SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_DADOS_DOC');
-      if($dados==''){
-        throw new InfraException('Dados dos documentos para assiantura via GovBr não encontrados, tentar novamente');
-      }
-
-      $objAcessoExternoDTO = new AcessoExternoDTO();
-      $objAcessoExternoDTO->retDblIdProtocoloAtividade();
-      $objAcessoExternoDTO->retNumIdUnidadeAtividade();
-      $objAcessoExternoDTO->setNumIdAcessoExterno($dados['id_acesso_externo']);
-      $objAcessoExternoDTO->setStrStaTipo(AcessoExternoRN::$TA_ASSINATURA_EXTERNA);
-
-      $objAcessoExternoRN = new AcessoExternoRN();
-      $objAcessoExternoDTO = $objAcessoExternoRN->consultar($objAcessoExternoDTO);
-
-      if ($objAcessoExternoDTO == null) {
-        throw new InfraException('Registro de Acesso Externo não encontrado.');
-      }
-
-        $objDocumentoDTO = new DocumentoDTO();
-        $objDocumentoDTO->retDblIdDocumento();
-        $objDocumentoDTO->setDblIdDocumento($dados['id_documento']);
-        $objDocumentoDTO->setDblIdProcedimento($objAcessoExternoDTO->getDblIdProtocoloAtividade());
-  
-        $objDocumentoRN = new DocumentoRN();
-        $objDocumentoDTO = $objDocumentoRN->consultarRN0005($objDocumentoDTO);
-  
-        if ($objDocumentoDTO == null) {
-            throw new InfraException('Documento não encontrado.');
+        }catch(Exception $e){
+            
+            throw new InfraException("Erro ao validar token de revalidação GovBr",$e);
         }
 
-        $objUsuarioDTO = new UsuarioDTO();
-      $objUsuarioDTO->setNumIdUsuario(SessaoSEIExterna::getInstance()->getNumIdUsuarioExterno());
-
-      $objUsuarioRN = new UsuarioRN();
-      $arrCargoFuncao = InfraArray::converterArrInfraDTO($objUsuarioRN->listarCargoFuncao($objUsuarioDTO),'CargoFuncao');
-
-      if (count($arrCargoFuncao) == 1) {
-        $strDisplayCargoFuncao = 'display:none;';
-        $strCargoFuncao = $arrCargoFuncao[0];
-      } else {
-        $strCargoFuncao = $_POST['selCargoFuncao'];
-      }
-
-      $objAssinaturaDTO = new AssinaturaDTO();
-      $objAssinaturaDTO->setStrStaFormaAutenticacao(AssinaturaRN::$TA_SENHA);
-      $objAssinaturaDTO->setNumIdUsuario(SessaoSEIExterna::getInstance()->getNumIdUsuarioExterno());
-      $objAssinaturaDTO->setStrSenhaUsuario('');
-      $objAssinaturaDTO->setStrCargoFuncao($strCargoFuncao);
-      $objAssinaturaDTO->setArrObjDocumentoDTO(array($objDocumentoDTO));
-
-      $numIdUnidadeAnterior = SessaoSEI::getInstance()->getNumIdUnidadeAtual();
-      $numIdUsuarioAnterior = SessaoSEI::getInstance()->getNumIdUsuario();
-      
-      SessaoSEI::getInstance()->setNumIdUnidadeAtual($objAcessoExternoDTO->getNumIdUnidadeAtividade());
-      SessaoSEI::getInstance()->setNumIdUsuario(SessaoSEIExterna::getInstance()->getNumIdUsuarioExterno());
-      $objDocumentoRN = new DocumentoRN();
-      $objDocumentoRN->assinar($objAssinaturaDTO);
-      
-      SessaoSEI::getInstance()->setNumIdUnidadeAtual($numIdUnidadeAnterior);
-      SessaoSEI::getInstance()->setNumIdUsuario($numIdUsuarioAnterior);
-
-
-    }catch(Exception $e){
-
-        SessaoSEI::getInstance()->setNumIdUnidadeAtual($numIdUnidadeAnterior);
-        SessaoSEI::getInstance()->setNumIdUsuario($numIdUsuarioAnterior);
-
-        $e->lancarValidacoes();
-        throw new InfraException('Erro ao assinar pelo govBR',$e);       
-        
     }
-
-
-        
-    }
-
 
     /**
      * Realiza revalidação da senha do usuário com os dados vindos do GovBr
@@ -278,15 +220,15 @@ final class LoginControladorRN extends InfraRN
      * @param array $dados
      * @return void
      */
-    public function revalidarAssinatura($dados)
+    public function revalidarAssinatura($dados,$bolExterno=true)
     {
         try {
-            $json_output_tokens = $this->gerarAccessToken($dados, true);
-            $json_output_jwk = $this->gerarJwk(true);
+            $json_output_tokens = $this->gerarAccessToken($dados, $bolExterno);
+            $json_output_jwk = $this->gerarJwk($bolExterno);
             $access_token = $json_output_tokens['access_token'];
             return $this->processToClaims($access_token, $json_output_jwk);
         } catch (Exception $e) {
-            throw new InfraException("Erro ao revalidar assinatura no GovBr", $e);
+            throw new InfraException("Erro ao revalidar assinatura no GovBr, tente novamente", $e);
         }
     }
 
@@ -320,7 +262,7 @@ final class LoginControladorRN extends InfraRN
                 $associar = false;
                 $duplicidade = false;
                 if($userSei && $atualizarUser && $userSei->getStrSenha()!=null && ($userSei->getDblCpfContato() === $json_output_payload_id_token['sub'])){
-                    $associar = true;
+                    //$associar = true;
                 }else if($userSei && $atualizarUser && $userSei->getStrSenha()!=null && ($userSei->getDblCpfContato() !== $json_output_payload_id_token['sub'])){
                     $duplicidade = true;
                 }
@@ -332,7 +274,7 @@ final class LoginControladorRN extends InfraRN
                 }
                 
             } catch (Exception $e) {
-                throw new InfraException("Erro ao autenticar pelo Acesso.gov.br", $e);
+                throw new InfraException("Erro ao autenticar pelo Acesso.gov.br, tente novamente", $e);
             }
         } else {
             $getDadosUser = $this->pesquisarUsuario(SessaoSEIExterna::getInstance()->getAtributo('MD_LOGIN_UNICO_TOKEN'));
@@ -389,7 +331,7 @@ final class LoginControladorRN extends InfraRN
 
             
             $_SESSION['EXTERNO_TOKEN'] = md5(uniqid(mt_rand()));
-            $seqUserLogin = $this->getObjInfraIBanco()->getValorSequencia('seq_usuario_login_unico');
+            $seqUserLogin = $this->getObjInfraIBanco()->getValorSequencia('md_login_unico_seq_usuario');
             SessaoSEIExterna::getInstance()->setAtributo('ID_USUARIO_EXTERNO', $user->getNumIdUsuario());
             SessaoSEIExterna::getInstance()->setAtributo('ID_USUARIO_LOGIN', $seqUserLogin);
             SessaoSEIExterna::getInstance()->setAtributo('SIGLA_USUARIO_EXTERNO', $user->getStrSigla());
@@ -423,6 +365,11 @@ final class LoginControladorRN extends InfraRN
             }
             
             header('Location: '.$url);
+            if($erro){
+                $objInfraException = new InfraException();
+                $objInfraException->lancarValidacao('Usuário ainda não foi liberado.');
+            }
+
         } catch (Exception $e) {
             throw new InfraException('Erro ao realizar login (govbr).', $e);
         }
@@ -641,6 +588,7 @@ final class LoginControladorRN extends InfraRN
             $objContatoDTO=new ContatoDTO();
             $objContatoDTO->setNumIdContato($seqContato);
             $objContatoDTO->setStrNome(utf8_decode($token['name']));
+            $objContatoDTO->setStrNomeRegistroCivil(utf8_decode($token['name']));
             $objContatoDTO->setDblCpf($token['sub']);
             $objContatoDTO->setStrEmail($token['email']);
             $objContatoDTO->setStrSinAtivo($sinAtivo);
@@ -668,6 +616,7 @@ final class LoginControladorRN extends InfraRN
             $objUsuarioDTO->setStrSinAtivo($sinAtivo);
             $objUsuarioDTO->setStrSigla($token['email']);
             $objUsuarioDTO->setStrNome(utf8_decode($token['name']));
+            $objUsuarioDTO->setStrNomeRegistroCivil(utf8_decode($token['name']));
             $objUsuarioDTO->setNumIdContato($seqContato);
             $objUsuarioDTO->setNumIdOrgao(0);
             $objUsuarioDTO->setStrStaTipo(UsuarioRN::$TU_EXTERNO);
@@ -857,4 +806,244 @@ final class LoginControladorRN extends InfraRN
             echo "<script>location.href = '" . SessaoSEIExterna::getInstance()->assinarLink('controlador_externo.php?acao=usuario_loginunico_atualizar&id_orgao_acesso_externo=' . SessaoSEIExterna::getInstance()->getAtributo('ID_ORGAO_USUARIO_EXTERNO')) ."';</script>";
         }
     }
+
+    protected function pesquisaUsuarioLoginUnicoControlado($idUser){
+
+        $objLoginUnicoDTO=new LoginUnicoDTO();
+        $objLoginUnicoDTO->setNumIdUsuario($idUser);
+        $objLoginUnicoDTO->retTodos();
+
+        $objLoginUnicoBD  = new LoginUnicoBD(BancoSEI::getInstance());
+        $usuario = $objLoginUnicoBD->consultar($objLoginUnicoDTO);
+        if($usuario!=null){
+            return true;        
+        }
+        return false;
+    }
+
+    protected function getIdUsuarioLoginUnicoControlado(UsuarioAPI $objUsuarioAPI){
+
+        $email=$objUsuarioAPI->getSigla();
+        $objLoginUnicoDTO=new LoginUnicoDTO();
+        $objLoginUnicoDTO->setStrEmail($email);
+        $objLoginUnicoDTO->retTodos();
+
+        $objLoginUnicoBD  = new LoginUnicoBD(BancoSEI::getInstance());
+        $usuario = $objLoginUnicoBD->consultar($objLoginUnicoDTO);
+        return $usuario;
+
+    }
+
+    private function geraScriptFechamento($strAcaoRetorno){
+
+
+        switch($strAcaoRetorno)
+        {
+            case 'assinaturaPadrao':
+
+                return "<script>
+                        // let ifrm=window.opener.parent.document.getElementById('ifrArvore');
+                        // ifrm.src=ifrm.src;
+                        // window.opener.location.reload();
+                        window.close();
+                        </script>";
+
+                break;
+
+            case 'bloco_navegar':
+
+                return "<script>
+                        // window.opener.processarDocumento(window.opener.posAtual);
+                        // window.opener.objAjaxAssinaturas.executar();
+                        // window.opener.parent.parent.location.reload();
+                        window.opener.parent.location.reload();
+                        window.close();
+                        </script>";
+
+                break;
+
+            case 'editor_montar':
+
+                return "<script>
+                        // window.opener.atualizarArvore(true);
+                        // window.parent.atualizarArvore(true);
+                        window.opener.parent.atualizarArvore(true);
+                        window.close();
+                        </script>";
+
+                break;
+            
+            default:
+
+                return "<script>
+                        // window.opener.location.reload();
+                        window.close();
+                        </script>";
+
+                break;
+
+        }
+
+
+    }
+
+    protected function retornaOperacaoLoginUnicoControlado($state){
+
+        try{
+
+            $objAssinaturaLoginUnicoDTO=new AssinaturaLoginUnicoDTO();
+            $objAssinaturaLoginUnicoDTO->setStrStateLoginUnico($state);
+            $objAssinaturaLoginUnicoDTO->retStrOperacao();
+            
+            $objLoginUnicoBD = new LoginUnicoBD(BancoSEI::getInstance());
+            $objAssinaturaLoginUnicoDTO=$objLoginUnicoBD->consultar($objAssinaturaLoginUnicoDTO);
+
+            
+        }catch(Exception $e){}
+        
+        if($objAssinaturaLoginUnicoDTO==null)return null;
+
+        return $objAssinaturaLoginUnicoDTO->getStrOperacao();
+    }
+
+    protected function gravarAgrupadorControlado($objAssinaturaLoginUnicoDTO){
+
+        $objLoginUnicoBD = new LoginUnicoBD(BancoSEI::getInstance());
+        $objLoginUnicoBD->cadastrar($objAssinaturaLoginUnicoDTO);
+        return;
+
+    }
+
+
+    protected function assinaturaLoginUnicoControlado($escopo){
+
+
+        try{ 
+
+        if($escopo=="externo"){
+
+        $validacao = $this->validarTokenAssinatura($_GET);
+
+        if($validacao){
+            
+            $objAssinaturaLoginUnicoDTO=new AssinaturaLoginUnicoDTO();
+            $objAssinaturaLoginUnicoDTO->setStrStateLoginUnico($_GET['state']);
+            $objAssinaturaLoginUnicoDTO->retTodos();
+
+            $objLoginUnicoBD = new LoginUnicoBD(BancoSEI::getInstance());
+            $objAssinaturaLoginUnicoDTO=$objLoginUnicoBD->consultar($objAssinaturaLoginUnicoDTO);
+
+            $objAssinaturaRN=new AssinaturaRN();
+            $paramAssinaturaDTO = new AssinaturaDTO();
+            $paramAssinaturaDTO->setStrAgrupador($objAssinaturaLoginUnicoDTO->getStrAgrupador());
+            $paramAssinaturaDTO->retTodos();
+            $paramAssinaturaDTO->retStrProtocoloDocumentoFormatado();
+            $paramAssinaturaDTO->retDblIdProcedimentoDocumento();
+            $paramAssinaturaDTO->setBolExclusaoLogica(false);
+            $paramAssinaturaDTO->setStrSinAtivo('N');
+            $paramAssinaturaDTO = $objAssinaturaRN->consultarRN1322($paramAssinaturaDTO);
+
+            if($paramAssinaturaDTO==null){
+                throw new InfraException('Erro ao obter assinaturas do agrupador, tentar novamente');
+            }
+
+            $objDocumentoRN=new DocumentoRN();
+            $objAssinaturaDTO = new AssinaturaDTO();
+            $objAssinaturaDTO->setNumIdAssinatura($paramAssinaturaDTO->getNumIdAssinatura());
+            $objAssinaturaDTO->setStrP7sBase64(null);				
+            $objAssinaturaDTO->setBolAssinaturaModulo(true);				
+            $objDocumentoRN->confirmarAssinatura($objAssinaturaDTO);	
+        	
+        }
+
+        LoginUnicoINT::excluirDadosState($_GET['state']);
+        $strScriptFechamento=$this->geraScriptFechamento("default");
+        echo $strScriptFechamento;
+        return $validacao;
+
+
+        }elseif($escopo=="interno"){
+
+            $objAssinaturaLoginUnicoDTO=new AssinaturaLoginUnicoDTO();
+            $objAssinaturaLoginUnicoDTO->setStrStateLoginUnico($_GET['state']);
+            $objAssinaturaLoginUnicoDTO->retTodos();
+
+            $objLoginUnicoBD = new LoginUnicoBD(BancoSEI::getInstance());
+            $objAssinaturaLoginUnicoDTO=$objLoginUnicoBD->consultar($objAssinaturaLoginUnicoDTO);
+
+            $acaoOrigem=$objAssinaturaLoginUnicoDTO->getStrAcaoOrigem();
+
+            $objAssinaturaDTO = new AssinaturaDTO();
+            $objAssinaturaRN=new AssinaturaRN();
+
+            $objAssinaturaDTO->setStrAgrupador($objAssinaturaLoginUnicoDTO->getStrAgrupador());
+            $objAssinaturaDTO->retTodos();
+            $objAssinaturaDTO->retStrProtocoloDocumentoFormatado();
+            $objAssinaturaDTO->retDblIdProcedimentoDocumento();
+            $objAssinaturaDTO->retStrSiglaUsuario();
+            $objAssinaturaDTO->setBolExclusaoLogica(false);
+            $objAssinaturaDTO->setStrSinAtivo('N');
+            $arrObjAssinaturaDTO = $objAssinaturaRN->listarRN1323($objAssinaturaDTO);
+
+            if($arrObjAssinaturaDTO==null){
+                throw new InfraException('Erro ao obter assinaturas do agrupador, tentar novamente');
+            }
+
+
+            //email do primeiro assinante
+            $emailValidar=$arrObjAssinaturaDTO[0]->getStrSiglaUsuario();
+
+            $objLoginUnicoDTO=new LoginUnicoDTO();
+            $objLoginUnicoDTO->setStrEmail($emailValidar);
+            $objLoginUnicoDTO->retTodos();
+
+            $objLoginUnicoBD  = new LoginUnicoBD(BancoSEI::getInstance());
+            $usuario = $objLoginUnicoBD->consultar($objLoginUnicoDTO);
+
+            $paramGet=[
+                    "_GET"=>$_GET,
+                    "usuario"=>$usuario
+                ];              
+
+            $validacao = $this->validarTokenAssinaturaInterna($paramGet);
+
+            if($validacao){
+
+                foreach($arrObjAssinaturaDTO as $paramAssinaturaDTO){   
+                    
+                    //verifica se o email continua o mesmo
+                    $emailAtual=$paramAssinaturaDTO->getStrSiglaUsuario();
+                    if($emailValidar!=$emailAtual){
+                        throw new InfraException('Os documentos para assinatura possuem usuários GovBr diversos');
+                    }
+                    $objDocumentoRN=new DocumentoRN();
+                    $objAssinaturaDTO = new AssinaturaDTO();
+                    $objAssinaturaDTO->setNumIdAssinatura($paramAssinaturaDTO->getNumIdAssinatura());
+                    $objAssinaturaDTO->setStrP7sBase64(null);				
+                    $objAssinaturaDTO->setBolAssinaturaModulo(true);				
+                    $objDocumentoRN->confirmarAssinatura($objAssinaturaDTO);	
+
+                }
+            }
+
+            LoginUnicoINT::excluirDadosState($_GET['state']);
+            $strScriptFechamento=$this->geraScriptFechamento($acaoOrigem);
+            echo  $strScriptFechamento;
+            return $validacao;
+
+
+
+        }
+
+    }catch(Exception $e){
+            
+        throw new InfraException("Erro ao assinar utilizando loginUnico",$e);
+
+    }
+
+
+    }
+
+
+
 }

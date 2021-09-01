@@ -16,19 +16,23 @@
 
 require_once dirname(__FILE__) . '/../../../SEI.php';
 
-class LoginUnicoDTO extends InfraDTO{
+class AssinaturaLoginUnicoDTO extends InfraDTO{
 
     public function getStrNomeTabela(){
-        return 'md_login_unico_usuario';
+        return 'md_login_unico_assinatura';
     }
 
     public function montar (){
 
-      $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_NUM, 'IdLogin', 'id_usuario_login_unico');
+      $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_NUM, 'IdAssinaturaLoginUnico', 'id_assinatura_login_unico');
       $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_NUM, 'IdUsuario', 'id_usuario');
-      $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_DBL, 'CpfContato', 'cpf');
+      $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_STR, 'Agrupador', 'agrupador');
+      $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_STR, 'StateLoginUnico', 'state_login_unico');
+      $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_STR, 'Operacao', 'operacao');
+      $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_STR, 'AcaoOrigem', 'acao_origem');
+      $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_NUM, 'IdAcessoExterno', 'id_acesso_externo');
+
       $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_DTH, 'DataAtualizacao', 'dth_atualizacao');
-      $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_STR, 'Email', 'email');
 
       $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_STR,'Sigla','a.sigla','usuario a');
       $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_STR,'Nome','a.nome','usuario a');
@@ -40,16 +44,12 @@ class LoginUnicoDTO extends InfraDTO{
       $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_STR,'StaTipo','a.sta_tipo','usuario a');
       $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_STR,'TelefoneResidencialContato','c.telefone_residencial','contato c');
       $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_STR,'TelefoneComercialContato','c.telefone_comercial','contato c');
-      // $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_STR,'TelefoneFixoContato','c.telefone_fixo','contato c');
       $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_STR,'TelefoneCelularContato','c.telefone_celular','contato c');
       $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_NUM,'IdUfContato','c.id_uf','contato c');
       $this->adicionarAtributoTabelaRelacionada(InfraDTO::$PREFIXO_NUM,'IdCidadeContato','c.id_cidade','contato c');
 
-      //Campos de pesquisa
-      $this->adicionarAtributo(InfraDTO::$PREFIXO_BOL, 'Selecionado');
-    	$this->adicionarAtributo(InfraDTO::$PREFIXO_STR, 'PalavrasPesquisa');
 
-      $this->configurarPK('IdLogin', InfraDTO::$TIPO_PK_INFORMADO);
+      $this->configurarPK('IdAssinaturaLoginUnico', InfraDTO::$TIPO_PK_INFORMADO);
       $this->configurarFK('IdUsuario', 'usuario a', 'a.id_usuario');
       $this->configurarFK('IdOrgao','orgao o','o.id_orgao');
       $this->configurarFK('IdContato','contato c','c.id_contato');

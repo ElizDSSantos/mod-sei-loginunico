@@ -143,15 +143,29 @@ class MdLoginUnicoInstalacaoRN extends InfraRN {
 
         if(InfraString::isBolVazia($strVersaoModuloAnterior)){
 
-            BancoSEI::getInstance()->executarSql("CREATE TABLE usuario_login_unico (
+            BancoSEI::getInstance()->executarSql("CREATE TABLE md_login_unico_usuario (
                 id_usuario_login_unico " . $objInfraMetaBD->tipoNumero() . " NOT NULL,
                 id_usuario " . $objInfraMetaBD->tipoNumero() . " NOT NULL,
                 cpf " . $objInfraMetaBD->tipoNumeroGrande() . " NOT NULL,
                 email " . $objInfraMetaBD->tipoTextoVariavel(200) . " NOT NULL,
                 dth_atualizacao " . $objInfraMetaBD->tipoDataHora() . " NOT NULL)");
 
-            $objInfraMetaBD->adicionarChavePrimaria('usuario_login_unico','pk_id_usuario_login_unico',array('id_usuario_login_unico'));
-            $objInfraMetaBD->adicionarChaveEstrangeira('fk_usuario_login_unico','usuario_login_unico',array('id_usuario'),'usuario',array('id_usuario'));
+            $objInfraMetaBD->adicionarChavePrimaria('md_login_unico_usuario','pk_id_usuario_login_unico',array('id_usuario_login_unico'));
+            $objInfraMetaBD->adicionarChaveEstrangeira('fk_usuario_login_unico','md_login_unico_usuario',array('id_usuario'),'usuario',array('id_usuario'));
+            
+            
+            BancoSEI::getInstance()->executarSql("CREATE TABLE md_login_unico_assinatura (
+                id_assinatura_login_unico " . $objInfraMetaBD->tipoNumero() . " NOT NULL,
+                id_usuario " . $objInfraMetaBD->tipoNumero() . " NOT NULL,
+                agrupador " . $objInfraMetaBD->tipoTextoVariavel(200) . " NOT NULL,
+                state_login_unico " . $objInfraMetaBD->tipoTextoVariavel(200) . " NOT NULL,
+                operacao " . $objInfraMetaBD->tipoTextoVariavel(200) . " NOT NULL,
+                acao_origem " . $objInfraMetaBD->tipoTextoVariavel(200) . ",
+                id_acesso_externo " . $objInfraMetaBD->tipoNumero() . ",
+                dth_atualizacao " . $objInfraMetaBD->tipoDataHora() . " NOT NULL)");
+
+            $objInfraMetaBD->adicionarChavePrimaria('md_login_unico_assinatura','pk_id_assinatura_login_unico',array('id_assinatura_login_unico'));
+            $objInfraMetaBD->adicionarChaveEstrangeira('fk_assinatura_login_unico','md_login_unico_assinatura',array('id_usuario'),'usuario',array('id_usuario'));
 
 
                $ad= $objInfraMetaBD->obterMaxIdTabela('email_sistema');
@@ -202,11 +216,14 @@ class MdLoginUnicoInstalacaoRN extends InfraRN {
 
             //Criacao de Sequencias
             if (BancoSEI::getInstance() instanceof InfraMySql){
-                BancoSEI::getInstance()->executarSql('create table IF NOT EXISTS  seq_usuario_login_unico (id bigint not null primary key AUTO_INCREMENT, campo char(1) null) AUTO_INCREMENT = 1');
+                BancoSEI::getInstance()->executarSql('create table IF NOT EXISTS  md_login_unico_seq_usuario (id bigint not null primary key AUTO_INCREMENT, campo char(1) null) AUTO_INCREMENT = 1');
+                BancoSEI::getInstance()->executarSql('create table IF NOT EXISTS  md_login_unico_seq_assinatura (id bigint not null primary key AUTO_INCREMENT, campo char(1) null) AUTO_INCREMENT = 1');
             } else if (BancoSEI::getInstance() instanceof InfraSqlServer){
-                BancoSEI::getInstance()->executarSql('create table seq_usuario_login_unico (id bigint identity(1,1), campo char(1) null)');
+                BancoSEI::getInstance()->executarSql('create table md_login_unico_seq_usuario (id bigint identity(1,1), campo char(1) null)');
+                BancoSEI::getInstance()->executarSql('create table md_login_unico_seq_assinatura (id bigint identity(1,1), campo char(1) null)');
             } else if (BancoSEI::getInstance() instanceof InfraOracle){
-                BancoSEI::getInstance()->criarSequencialNativa('seq_usuario_login_unico', 1);
+                BancoSEI::getInstance()->criarSequencialNativa('md_login_unico_seq_usuario', 1);
+                BancoSEI::getInstance()->criarSequencialNativa('md_login_unico_seq_assinatura', 1);
             }
 
 

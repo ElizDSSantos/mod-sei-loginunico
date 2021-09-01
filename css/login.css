@@ -1,0 +1,27 @@
+p.separador {
+    border-top: 1px solid #d9dadc;
+    display: block;
+    line-height: 1px;
+    margin:  25px 0 25px 0 ;;
+    text-align: center;
+    font-size: 13px;
+    color: #666;
+}
+
+a.btGov {
+    text-decoration: none;
+    border: 1px solid lightgray;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5em;
+}
+
+#txtComplementarBtGov {
+    font-weight: 200;
+    font-size: 1.1em;
+    margin-right: 0.5em;
+    font-family: Arial;
+    color: #666;
+}
