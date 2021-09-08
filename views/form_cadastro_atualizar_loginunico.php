@@ -73,6 +73,9 @@ try {
             } else {
                 try {
                     extract($_POST);
+                    if($txtEmail!=$token['email']){
+                      throw new InfraException('E-mail enviado para cadastro diferente do registrado GovBR');
+                    }
 
                     $idx = preg_replace('/\W/', "", $token['email']) . " " . strtolower(InfraString::excluirAcentos(utf8_decode($token['name'])));
 
@@ -127,7 +130,9 @@ try {
                 $objUsuarioDTO->setStrNomeRegistroCivil($txtNome);
                 $objUsuarioDTO->setStrSinAtivo("S");
                 $objUsuarioDTO->setStrStaTipo($staTipoUsuarioExterno);
-                //$objUsuarioDTO->setStrSenha(null);
+                
+                $bcrypt = new InfraBcrypt();
+                $objUsuarioDTO->setStrSenha($bcrypt->hash(md5($_POST['txtSenha'])));
 
                 $objUsuarioDTO->setNumIdUsuario(SessaoSEIExterna::getInstance()->getAtributo('ID_USUARIO_EXTERNO'));
 
@@ -692,6 +697,21 @@ echo $strDivIdioma;
 
   <div class="row-externo mt-1">
     <label id="lblDadosUnidade"  accesskey="" class="infraLabelTitulo">&nbsp;&nbsp;<?=_("Dados de Autenticação")?></label>
+  </div>
+
+  Favor criar uma nova senha interna no SEI, poderá ser usada caso o Login Único estiver fora do ar.
+
+  <div class="row-externo mb-1">
+    <div class="coluna-externo-md">
+      <label id="lblSenha" for="txtSenha" accesskey="" class="infraLabelObrigatorio"><?=_("Senha:")?></label>
+      <input type="password" id="txtSenha" name="txtSenha" class="infraText" />
+    </div>
+  </div>
+  <div class="row-externo mb-1">
+    <div class="coluna-externo-md">
+      <label id="lblConfirmaSenha" for="txtConfirmaSenha" accesskey="" class="infraLabelObrigatorio"><?=_("Confirmar Senha:")?></label>
+      <input type="password" id="txtConfirmaSenha" name="txtConfirmaSenha" class="infraText" />
+    </div>
   </div>
 
   <div class="row-externo mb-1">

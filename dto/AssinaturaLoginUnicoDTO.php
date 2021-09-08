@@ -29,6 +29,7 @@ class AssinaturaLoginUnicoDTO extends InfraDTO{
       $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_STR, 'Agrupador', 'agrupador');
       $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_STR, 'StateLoginUnico', 'state_login_unico');
       $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_STR, 'Operacao', 'operacao');
+      $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_STR, 'IdDocumentos', 'id_documentos');
       $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_STR, 'AcaoOrigem', 'acao_origem');
       $this->adicionarAtributoTabela(InfraDTO::$PREFIXO_NUM, 'IdAcessoExterno', 'id_acesso_externo');
 

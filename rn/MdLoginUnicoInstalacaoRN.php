@@ -162,6 +162,7 @@ class MdLoginUnicoInstalacaoRN extends InfraRN {
                 operacao " . $objInfraMetaBD->tipoTextoVariavel(200) . " NOT NULL,
                 acao_origem " . $objInfraMetaBD->tipoTextoVariavel(200) . ",
                 id_acesso_externo " . $objInfraMetaBD->tipoNumero() . ",
+                id_documentos " . $objInfraMetaBD->tipoTextoVariavel(200) . " NOT NULL,
                 dth_atualizacao " . $objInfraMetaBD->tipoDataHora() . " NOT NULL)");
 
             $objInfraMetaBD->adicionarChavePrimaria('md_login_unico_assinatura','pk_id_assinatura_login_unico',array('id_assinatura_login_unico'));

@@ -262,7 +262,7 @@ final class LoginControladorRN extends InfraRN
                 $associar = false;
                 $duplicidade = false;
                 if($userSei && $atualizarUser && $userSei->getStrSenha()!=null && ($userSei->getDblCpfContato() === $json_output_payload_id_token['sub'])){
-                    //$associar = true;
+                    $associar = true;
                 }else if($userSei && $atualizarUser && $userSei->getStrSenha()!=null && ($userSei->getDblCpfContato() !== $json_output_payload_id_token['sub'])){
                     $duplicidade = true;
                 }
@@ -675,6 +675,13 @@ final class LoginControladorRN extends InfraRN
                 $usuarioDB  = new UsuarioBD($this->getObjInfraIBanco());
                 $user = $usuarioDB->consultar($usuarioDTO);
                 $update = true;
+                if(!$user){
+                    $usuarioDTO = new UsuarioDTO();
+                    $usuarioDTO->setDblCpfContato($token['sub']);
+                    $usuarioDTO->retTodos(true);
+                    $user = $usuarioDB->consultar($usuarioDTO);
+
+                }
             }
 
             return array(
@@ -943,6 +950,12 @@ final class LoginControladorRN extends InfraRN
             $paramAssinaturaDTO->setStrSinAtivo('N');
             $paramAssinaturaDTO = $objAssinaturaRN->consultarRN1322($paramAssinaturaDTO);
 
+            $stringIdDocumentos=$paramAssinaturaDTO->getDblIdDocumento();          
+
+            if($objAssinaturaLoginUnicoDTO->getStrIdDocumentos() != $stringIdDocumentos){
+                throw new InfraException('Erro ao obter id dos documentos do agrupador, tentar novamente');
+            }
+
             if($paramAssinaturaDTO==null){
                 throw new InfraException('Erro ao obter assinaturas do agrupador, tentar novamente');
             }
@@ -984,6 +997,19 @@ final class LoginControladorRN extends InfraRN
             $objAssinaturaDTO->setBolExclusaoLogica(false);
             $objAssinaturaDTO->setStrSinAtivo('N');
             $arrObjAssinaturaDTO = $objAssinaturaRN->listarRN1323($objAssinaturaDTO);
+
+            $stringIdDocumentos='';
+            foreach($arrObjAssinaturaDTO as $paramAssinaturaDTO){  
+                if($stringIdDocumentos==''){
+                    $stringIdDocumentos.=$paramAssinaturaDTO->getDblIdDocumento();
+                }else{
+                    $stringIdDocumentos.="," . $paramAssinaturaDTO->getDblIdDocumento();
+                }
+            }
+
+            if($objAssinaturaLoginUnicoDTO->getStrIdDocumentos() != $stringIdDocumentos){
+                throw new InfraException('Erro ao obter id dos documentos do agrupador, tentar novamente');
+            }
 
             if($arrObjAssinaturaDTO==null){
                 throw new InfraException('Erro ao obter assinaturas do agrupador, tentar novamente');

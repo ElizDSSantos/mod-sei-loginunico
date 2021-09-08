@@ -50,10 +50,12 @@ Prezado <?= $user->getStrNome() ?>,
 <br><br>
 Foi identificada uma conta de usuário externo do SEI vinculada ao e-mail <?= $user->getStrSigla() ?>. Com isso, será necessário realizar a unificação desta conta com o Acesso Único do Governo Federal. 
 <br><br>
+O e-mail utilizado a partir de agora será o cadastrado no Acesso Único do Governo Federal.
+<br><br>
 Por favor, confirme seus dados de autenticação para concluir a operação.
 </div>
 <div class="row-externo mb-1">
-  <div class="coluna-externo-md auxiliar">
+  <div class="coluna-externo-lg auxiliar">
     <div class="row-externo mb-1">
       <div class="coluna-int">
         <label id="lblSenha" for="txtSenha" accesskey="" class="infraLabelObrigatorio"><?=_("Senha atual do usuário SEI:")?></label>
@@ -68,12 +70,12 @@ Por favor, confirme seus dados de autenticação para concluir a operação.
         </div>
       </div>
     </div>
-    <input type="password" id="txtSenha" name="txtSenha"  maxlength="15" class="infraText"  value=""  style="width: 40%;" tabindex="<?=PaginaSEIExterna::getInstance()->getProxTabDados()?>"/>
+    <input type="password" id="txtSenha" name="txtSenha"  maxlength="15" class="infraText"  value=""  style="width: 10em;" tabindex="<?=PaginaSEIExterna::getInstance()->getProxTabDados()?>"/>
   </div>
 </div>
 <div class="row-externo mb-1">
-  <button type="submit" accesskey="" id="sbmVincular" class="infraButton bt" name="sbmVincular" value="Vincular" title="Vincular" ><?=_("Vincular Conta")?></button>
-  <button type="button" accesskey="" id="btnVoltar" name="btnVoltar" value="Cancelar" onclick="location.href='<?=SessaoSEIExterna::getInstance()->assinarLink('controlador_externo.php?acao=usuario_externo_sair&acao_origem='.$_GET['acao'])?>';" class="infraButton bt"><?=_("Cancelar")?></button>
+  <button type="submit" accesskey="" id="sbmVincular" class="infraButton" name="sbmVincular" value="Vincular" title="Vincular" ><?=_("Vincular Conta")?></button>
+  <button type="button" accesskey="" id="btnVoltar" name="btnVoltar" class="infraButton" value="Cancelar" onclick="location.href='<?=SessaoSEIExterna::getInstance()->assinarLink('controlador_externo.php?acao=usuario_externo_sair&acao_origem='.$_GET['acao'])?>';" class="infraButton bt"><?=_("Cancelar")?></button>
 </div>
 </form>
 

@@ -213,6 +213,7 @@ class LoginUnicoIntegracao extends SeiIntegracao
             $objAssinaturaLoginUnicoDTO->setStrAgrupador($objRespostaAssinatura->getAgrupador());
             $objAssinaturaLoginUnicoDTO->setStrStateLoginUnico($state);
             $objAssinaturaLoginUnicoDTO->setStrOperacao("revalidacao");
+            $objAssinaturaLoginUnicoDTO->setStrIdDocumentos($_GET["id_documento"]);
             $objAssinaturaLoginUnicoDTO->setNumIdAcessoExterno($_GET['id_acesso_externo']);
             $objAssinaturaLoginUnicoDTO->setDthDataAtualizacao(InfraData::getStrDataHoraAtual());
 
@@ -263,6 +264,7 @@ class LoginUnicoIntegracao extends SeiIntegracao
         $objAssinaturaLoginUnicoDTO->setStrAgrupador($objRespostaAssinatura->getAgrupador());
         $objAssinaturaLoginUnicoDTO->setStrStateLoginUnico($state);
         $objAssinaturaLoginUnicoDTO->setStrOperacao("assinaturaInterna");
+        $objAssinaturaLoginUnicoDTO->setStrIdDocumentos($_POST['hdnIdDocumentos']);
         $objAssinaturaLoginUnicoDTO->setStrAcaoOrigem($strAcaoOrigem);
         $objAssinaturaLoginUnicoDTO->setDthDataAtualizacao(InfraData::getStrDataHoraAtual());
 
@@ -294,44 +296,9 @@ class LoginUnicoIntegracao extends SeiIntegracao
 
     //validador para omitir a opção de alterar senha para usuário externo
     public function verificarLoginExterno(UsuarioAPI $objUsuarioAPI){
-
-        $controlador = new LoginControladorRN();
-        $usuario=$controlador->getIdUsuarioLoginUnico($objUsuarioAPI);
-
-        if($usuario != null){
-
-            $objUsuarioDTO = new UsuarioDTO();
-      	    $objUsuarioDTO->setStrSigla($objUsuarioAPI->getSigla());
-      	    $objUsuarioDTO->retTodos();
-
-            $objUsuarioRN=new UsuarioRN;
-            $objUsuarioDTO=$objUsuarioRN->consultarRN0489($objUsuarioDTO);
-
-            if(!$objUsuarioDTO->getStrSenha()){
-
-                //neste caso nunca foi criada senha
-                $objUsuarioDTO = new UsuarioDTO();
-                $objUsuarioDTO->setStrSigla($objUsuarioAPI->getSigla());
-                $objUsuarioRN->gerarSenha($objUsuarioDTO);
-
-                echo "
-                <script> 
-                window.addEventListener('load',()=>{
-                    document.querySelector('.alert').innerHTML=`
-                        Foi enviada uma senha temporária, que será interna do SEI e portanto 
-                        diferente da sua conta do GOVBR, para seu email cadastrado.`;
-                });
-                </script>
-                ";
-
-                return true;
-            }
-
-        }
         
         return false;
         
-
     }
 
     /**
@@ -419,6 +386,7 @@ class LoginUnicoIntegracao extends SeiIntegracao
             case 'state_login_unico_ajax':  
                 $controlador = new LoginControladorRN();
                 $state=LoginUnicoINT::obterDadosSessao('SessaoSEIExterna','MD_LOGIN_UNICO_HASHMAP',$_GET['hashSei']); 
+                if(!$state) throw new InfraException("Erro ao obter documento a ser assinado, tente novamente");
                 $url = $controlador->gerarURL(true,$state);
                 InfraAjax::enviarTexto($url);                              
                 exit(0);
