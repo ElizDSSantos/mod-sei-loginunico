@@ -17,7 +17,7 @@ O download do pacote de instalação/atualização do mod-sei-pen pode ser encon
 Para instalação deste módulo seguir os passos abaixo:
 
 ### Pré-requisitos
- - **SEI versão 3.1.x ou superior instalada**;
+ - **SEI versão 4.0.0 ou superior instalada**;
  - Usuário de acesso ao banco de dados do SEI e SIP com permissões para criar novas estruturas no banco de dados
 
 
@@ -50,6 +50,8 @@ Esta etapa é padrão para a instalação de qualquer módulo no SEI para que el
 
 -  redirect_url: URI de retorno cadastrada para a aplicação cliente no formato URL Encode. Este parâmetro não pode conter caracteres especiais conforme consta na especificação auth 2.0 Redirection Endpoint.
 
+-  url_logout:URI de retorno para o logout do usuário.
+
 -  scope: Especifica os recursos que o serviço consumidor quer obter. Um ou mais escopos inseridos para a aplicação cadastrada. Informação a ser preenchida por padrão: openid+email+phone+profile.
 
 -  url_servico: URL de acesso a API do GovBr.
@@ -60,7 +62,7 @@ Esta etapa é padrão para a instalação de qualquer módulo no SEI para que el
 
 -  secret_validacao: secret para revalidação de senha, utilizada no serviço de assinatura
 
--  niveis_confiabilidade: Array de níveis, existentes no <acesso.gov.br>, considerados confiaveis pelo órgão, que serão recuperados pelo SEI, para comparação, que permitirá a liberação da autenticação no SEI, via Login Único.
+-  niveis_confiabilidade: Array de níveis, existentes no <acesso.gov.br>, considerados confiaveis pelo órgão, que serão recuperados pelo SEI, para comparação, que permitirá a liberação da autenticação no SEI, via Login Único. O módulo não permite uso por usuário de perfil Bronze(Nível 1). 
 
 -  orgao: Identificador do órgão que está instalando o Login Único no SEI (ID do banco de dados).
 
@@ -75,6 +77,7 @@ Abaixo encontra-se o trecho de código de configuração do módulo Login Único
                 'secret'    => 'XXXXXXXX',
                 'url_provider' => 'https://sso.staging.acesso.gov.br/',
                 'redirect_url'  => 'XXXXXXXXX',
+                'url_logout' =>    'http://sei.loginunico.nuvem.gov.br/sei/modulos/loginunico/logout.php',
                 'scope'  => 'openid+email+phone+profile+govbr_empresa+govbr_confiabilidades',
                 'url_servicos'   => 'https://api.staging.acesso.gov.br/',
                 'url_revalidacao'   => 'https://oauth.staging.acesso.gov.br/v1/',
@@ -97,7 +100,7 @@ Adicionar a referência ao módulo PEN na array da chave 'Modulos' indicada abai
 
 Nesta etapa é instalado/atualizado as tabelas de banco de dados vinculadas do **loginUnico**. 
 
-Caso queira atualizar o emial padrão que será enviado aos usuários, poderá atualizar no script de instalação as seguintes variaveis:
+Caso queira atualizar o email padrão que será enviado aos usuários, poderá atualizar no script de instalação as seguintes variaveis:
 
 -  @descricao- Descreve sobre o que se trata o e-mail cadastrado. Pode ser mudado conforme necessidade do órgão.
 
