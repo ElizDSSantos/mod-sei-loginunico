@@ -19,6 +19,9 @@ Para instalação deste módulo seguir os passos abaixo:
 ### Pré-requisitos
  - **SEI versão 4.0.0 ou superior instalada**;
  - Usuário de acesso ao banco de dados do SEI e SIP com permissões para criar novas estruturas no banco de dados
+ 
+ - **Fazer o Cadastro do Órgão junto ao Login Único**;
+ - Como o fluxo utilizado pelo módulo é o OAUTH, é necessário que os sistemas se cadastrem junto ao serviço do GovBr para receber o ClientID e a sua senha. O link com as informações é o https://manual-roteiro-integracao-login-unico.servicos.gov.br/pt/stable/solicitarconfiguracao.html
 
 
  ### Procedimentos:
