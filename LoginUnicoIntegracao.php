@@ -16,12 +16,12 @@ class LoginUnicoIntegracao extends SeiIntegracao
 
     public function getVersao() 
     {
-        return 'sei-3.1.3-loginunico-1.0.0-rc.3';
+        return 'loginunico-1.0.0';
     }
 
     public function getInstituicao()
     {
-        return 'CADE - Conselho Administrativo de Defesa Econômica';
+        return 'CADE - Conselho Administrativo de Defesa Econômica e Ministério da Economia - ME (Projeto Colaborativo no Portal do SPB)';
     }
 
     public function getAcaoModulo($strAcao)
@@ -104,8 +104,12 @@ class LoginUnicoIntegracao extends SeiIntegracao
             $html = "
                     <script src= 'modulos/". NOME_MODULO_LOGIN_UNICO . "/js/montarBotaoExterno.js' > </script>
                     <a class='btGov' style='width: 90%;' onclick='
-                        handleClickExterno(\"". AssinaturaRN::$TA_MODULO ."\" ,\"". $hashSei ."\");
-                        abrirJanelaLoginUnico(\"" . $strLinkAjaxState . "\");
+                        if(document.querySelector(\"#selCargoFuncao\").selectedIndex!=0){
+                            handleClickExterno(\"". AssinaturaRN::$TA_MODULO ."\" ,\"". $hashSei ."\");
+                            abrirJanelaLoginUnico(\"" . $strLinkAjaxState . "\");
+                        }else{
+                            alert(\"Selecione um cargo\");
+                        }
                     '>
                         <span id='txtComplementarBtGov'>Assinar com </span><img src='modulos/". NOME_MODULO_LOGIN_UNICO . "/img/img_acesso.png' alt='' width='64' height='28'>
                     </a>
@@ -169,8 +173,12 @@ class LoginUnicoIntegracao extends SeiIntegracao
             
                         <div id='btnLoginUnico'>
                             <a class='btGov' id='btGovBr'  onclick='
+                            if(document.querySelector(\"#selCargoFuncao\").selectedIndex!=0){
                             handleClickInterno(\"". AssinaturaRN::$TA_MODULO ."\" ,\"". $hashSei ."\");
                             abrirJanelaLoginUnico(\"" . $strLinkAjaxState . "\");
+                            }else{
+                                alert(\"Selecione um cargo\");
+                            }
                             '>                                                                                      
                                 <span id='txtComplementarBtGov'>Assinar com </span><img src='modulos/". NOME_MODULO_LOGIN_UNICO . "/img/img_acesso.png' alt='' width='64' height='28'>
                             </a>
