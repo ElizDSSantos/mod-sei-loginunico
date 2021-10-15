@@ -77,6 +77,20 @@ try {
                       throw new InfraException('E-mail enviado para cadastro diferente do registrado GovBR');
                     }
 
+                    if($txtCpf!=$token['sub']){
+                      throw new InfraException('CPF enviado para cadastro diferente do registrado GovBR');
+                    }
+
+                    if($txtNome!=$token['name']){
+                      throw new InfraException('Nome enviado para cadastro diferente do registrado GovBR');
+                    }
+
+                    $timestamp=time();
+
+                    if($timestamp >= $token['exp']){
+                      throw new InfraException('Token de Login do GovBR Expirado, faça login novamente no GovBR');
+                  }
+
                     $idx = preg_replace('/\W/', "", $token['email']) . " " . strtolower(InfraString::excluirAcentos(utf8_decode($token['name'])));
 
                     if (!BancoSEI::getInstance()->getIdConexao()) {
