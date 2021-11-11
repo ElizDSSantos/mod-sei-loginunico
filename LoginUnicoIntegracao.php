@@ -105,7 +105,7 @@ class LoginUnicoIntegracao extends SeiIntegracao
                     <script src= 'modulos/". NOME_MODULO_LOGIN_UNICO . "/js/montarBotaoExterno.js' > </script>
                     <a class='btGov' style='width: 90%;' onclick='
                         if(document.querySelector(\"#selCargoFuncao\").selectedIndex!=0){
-                            handleClickExterno(\"". AssinaturaRN::$TA_MODULO ."\" ,\"". $hashSei ."\");
+                            handleClickExterno(\"". AssinaturaRN::$TA_MODULO ."\" ,\"". $hashSei ."\" ,\"" . $controlador->getNomeModulo() . "\");
                             abrirJanelaLoginUnico(\"" . $strLinkAjaxState . "\");
                         }else{
                             alert(\"Selecione um cargo\");
@@ -174,7 +174,7 @@ class LoginUnicoIntegracao extends SeiIntegracao
                         <div id='btnLoginUnico'>
                             <a class='btGov' id='btGovBr'  onclick='
                             if(document.querySelector(\"#selCargoFuncao\").selectedIndex!=0){
-                            handleClickInterno(\"". AssinaturaRN::$TA_MODULO ."\" ,\"". $hashSei ."\");
+                                handleClickInterno(\"". AssinaturaRN::$TA_MODULO ."\" ,\"". $hashSei ."\" ,\"" . $controlador->getNomeModulo() . "\");
                             abrirJanelaLoginUnico(\"" . $strLinkAjaxState . "\");
                             }else{
                                 alert(\"Selecione um cargo\");
@@ -202,6 +202,11 @@ class LoginUnicoIntegracao extends SeiIntegracao
     public function prepararAssinaturaDocumento(AssinaturaAPI $objRespostaAssinatura){
 
        if(!isset($_POST['loginUnicoState']))return false;
+
+       $controlador = new LoginControladorRN();
+
+       if($objRespostaAssinatura->getObjConfiguracoesAssinatura()->getNomeModulo()!=$controlador->getNomeModulo())return false;
+
 
         try{ 
 
@@ -401,6 +406,28 @@ class LoginUnicoIntegracao extends SeiIntegracao
                 
         }
         return null;
+    }
+
+    public function obterConfiguracoesAssinatura(ConfiguracoesAssinaturaAPI $objConfiguracoesAssinaturaAPI){
+
+        $controlador = new LoginControladorRN();
+        if($objConfiguracoesAssinaturaAPI->getNomeModulo()!=$controlador->getNomeModulo())return false;
+
+        if($objConfiguracoesAssinaturaAPI->getNomeModulo()==$controlador->getNomeModulo()){
+            $objConfiguracoesAssinaturaAPI->setBolTipoAssinaturaCertificado(false);
+            $objConfiguracoesAssinaturaAPI->setBolTipoAssinaturaSenha(true);
+            $objConfiguracoesAssinaturaAPI->setBolGerarIndexacao(true);
+            $objConfiguracoesAssinaturaAPI->setBolUsuarioComCpf(true);
+            $objConfiguracoesAssinaturaAPI->setStrTipoTarjaAssinatura("S");
+            $objConfiguracoesAssinaturaAPI->setStrTipoTarjaAutenticacao("H");
+            $objConfiguracoesAssinaturaAPI->setBolGerarAgrupador(true);
+            $objConfiguracoesAssinaturaAPI->setBolUtilizaRevalidacao(true);
+            $objConfiguracoesAssinaturaAPI->setBolValidacaoCertificado(false);
+
+            $objConfiguracoesAssinaturaAPI->setStrLinkValidacao(null);
+        }
+        return $objConfiguracoesAssinaturaAPI;
+
     }
 
 }

@@ -234,6 +234,10 @@ class MdLoginUnicoInstalacaoRN extends InfraRN {
             $objInfraParametroBD = new InfraParametroBD(BancoSEI::getInstance());
             $objInfraParametroBD->cadastrar($objInfraParametroDTO);
             
+            //temporario
+            BancoSEI::getInstance()->executarSql('alter table sei.assinatura add column modulo_origem varchar(256)');
+
+
                 
         }else if(trim($strVersaoModuloAnterior)==$versao){
 

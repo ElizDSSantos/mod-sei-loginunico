@@ -1,6 +1,6 @@
 
 
-function handleClickExterno(tipoAssinatura,hashSEI){
+function handleClickExterno(tipoAssinatura,hashSEI,nomeModulo){
 
     var inputTipoValidacao = document.createElement("input");
     inputTipoValidacao.setAttribute("value", tipoAssinatura );
@@ -11,10 +11,16 @@ function handleClickExterno(tipoAssinatura,hashSEI){
     inputLogin.setAttribute("value", hashSEI);
     inputLogin.setAttribute("name", "loginUnicoState");
     inputLogin.setAttribute("hidden", "true");
+    
+    var inputNomeModulo = document.createElement("input");
+    inputNomeModulo.setAttribute("value", nomeModulo);
+    inputNomeModulo.setAttribute("name", "hdnModuloOrigem");
+    inputNomeModulo.setAttribute("hidden", "true");
 
     var elForm = document.getElementById("frmAssinaturaUsuarioExterno");
     elForm.appendChild(inputLogin);
     elForm.appendChild(inputTipoValidacao);
+    elForm.appendChild(inputNomeModulo);
     document.getElementById("hdnFlag").value=1; 
 
 

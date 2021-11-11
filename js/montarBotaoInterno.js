@@ -12,14 +12,19 @@ function initBotao(urlLogout){
     }); 
 }
 
-function handleClickInterno(tipoAssinatura,hashSEI){
+function handleClickInterno(tipoAssinatura,hashSEI,nomeModulo){
     document.getElementById("hdnFormaAutenticacao").value=tipoAssinatura;
     var inputLogin = document.createElement("input");
     inputLogin.setAttribute("value", hashSEI);
     inputLogin.setAttribute("name", "loginUnicoState");
     inputLogin.setAttribute("hidden", "true");
+    var inputNomeModulo = document.createElement("input");
+    inputNomeModulo.setAttribute("value", nomeModulo);
+    inputNomeModulo.setAttribute("name", "hdnModuloOrigem");
+    inputNomeModulo.setAttribute("hidden", "true");
     var elform = document.getElementById("frmAssinaturas");
     elform.appendChild(inputLogin);
+    elform.appendChild(inputNomeModulo);
 
 }
 

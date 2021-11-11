@@ -21,6 +21,7 @@ final class LoginControladorRN extends InfraRN
     private $client_id_validacao;
     private $secret_validacao;
     private $nivel_minimo_confiabilidade;
+    private $nomeModulo;
 
     protected function inicializarObjInfraIBanco()
     {
@@ -42,7 +43,13 @@ final class LoginControladorRN extends InfraRN
         $this->client_id_validacao   =  $conf->getArrConfiguracoes()['LoginUnico']['client_id_validacao'];
         $this->secret_validacao      =  $conf->getArrConfiguracoes()['LoginUnico']['secret_validacao'];
         $this->nivel_minimo_confiabilidade = 1;
+        $this->nomeModulo            =  "loginUnico";
     }
+
+    public function getNomeModulo(){
+        return $this->nomeModulo;
+    }
+
 
      /**
       * Gerar URL para envio ao GovBr
@@ -1009,11 +1016,17 @@ final class LoginControladorRN extends InfraRN
                 throw new InfraException('Erro ao obter assinaturas do agrupador, tentar novamente');
             }
 
+            $objConfiguracoesAssinatura = new ConfiguracoesAssinaturaAPI();
+            $objConfiguracoesAssinatura->setNomeModulo($this->nomeModulo);
+            $objConfiguracoesAssinatura->setBolValidacaoCertificado(false);
+            $objConfiguracoesAssinatura->setBolTipoAssinaturaCertificado(false);
+
             $objDocumentoRN=new DocumentoRN();
             $objAssinaturaDTO = new AssinaturaDTO();
             $objAssinaturaDTO->setNumIdAssinatura($paramAssinaturaDTO->getNumIdAssinatura());
             $objAssinaturaDTO->setStrP7sBase64(null);				
-            $objAssinaturaDTO->setBolAssinaturaModulo(true);				
+            $objAssinaturaDTO->setBolAssinaturaModulo(true);	
+            $objAssinaturaDTO->setObjConfiguracoesAssinaturaAPI($objConfiguracoesAssinatura);				
             $objDocumentoRN->confirmarAssinatura($objAssinaturaDTO);	
         	
         }
@@ -1102,11 +1115,17 @@ final class LoginControladorRN extends InfraRN
                         throw new InfraException('Os documentos para assinatura possuem usuários GovBr diversos');
                     }
 
+                    $objConfiguracoesAssinatura = new ConfiguracoesAssinaturaAPI();
+                    $objConfiguracoesAssinatura->setNomeModulo($this->nomeModulo);
+                    $objConfiguracoesAssinatura->setBolValidacaoCertificado(false);
+                    $objConfiguracoesAssinatura->setBolTipoAssinaturaCertificado(false);
+
                     $objDocumentoRN=new DocumentoRN();
                     $objAssinaturaDTO = new AssinaturaDTO();
                     $objAssinaturaDTO->setNumIdAssinatura($paramAssinaturaDTO->getNumIdAssinatura());
-                    $objAssinaturaDTO->setStrP7sBase64(null);				
-                    $objAssinaturaDTO->setBolAssinaturaModulo(true);				
+                    $objAssinaturaDTO->setStrP7sBase64(null);
+                    $objAssinaturaDTO->setBolAssinaturaModulo(true);					
+                    $objAssinaturaDTO->setObjConfiguracoesAssinaturaAPI($objConfiguracoesAssinatura);				
                     $objDocumentoRN->confirmarAssinatura($objAssinaturaDTO);	
 
                 }
